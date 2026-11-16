@@ -1,0 +1,202 @@
+name: Publish Manager
+
+# Publishes the repacked APKs: the rolling `manager-ci` build on main and the
+# Telegram upload. Both used to be separate jobs doing the same split-and-sign
+# work twice, so they are one job now.
+on:
+  workflow_dispatch:
+    inputs:
+      artifacts_run:
+        description: 'Run id holding the Manager artifacts (empty = this run)'
+        required: false
+        default: ''
+        type: string
+  workflow_call:
+    inputs:
+      artifacts_run:
+        description: 'Run id holding the Manager artifacts (empty = this run)'
+        required: false
+        default: ''
+        type: string
+      release_upload:
+        description: 'Upload to the releases Telegram thread'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Check toolchain
+        run: |
+          set -eu
+          apksigner --version
+          python3 --version
+
+      - name: Download APKs
+        env:
+          ARTIFACTS_RUN: ${{ inputs.artifacts_run }}
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          if [ -n "$ARTIFACTS_RUN" ] && [ ! -d "${CI_ARTIFACT_ROOT}/Manager" ]; then
+            # This run has not written anything yet, so its root does not exist.
+            mkdir -p "${CI_ARTIFACT_ROOT}"
+            cp -a "/ci/runs/${ARTIFACTS_RUN}"/* "${CI_ARTIFACT_ROOT}/"
+          fi
+          ci_artifact_get Manager apks/Manager
+
+      - name: Prepare signing inputs
+        env:
+          PROD_KEYSTORE: ${{ vars.KEYSTORE || secrets.KEYSTORE }}
+          PROD_KEY_ALIAS: ${{ vars.KEY_ALIAS || secrets.KEY_ALIAS }}
+          PROD_KEYSTORE_PASSWORD: ${{ vars.KEYSTORE_PASSWORD || secrets.KEYSTORE_PASSWORD }}
+          PROD_KEY_PASSWORD: ${{ vars.KEY_PASSWORD || secrets.KEY_PASSWORD }}
+        run: |
+          set -eu
+          test -n "$PROD_KEYSTORE"
+          echo "$PROD_KEYSTORE" | base64 -d > key.jks
+          echo "SIGN_KEYSTORE_FILE=key.jks" >> "$GITHUB_ENV"
+          echo "SIGN_KEY_ALIAS=$PROD_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "SIGN_KEYSTORE_PASSWORD=$PROD_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "SIGN_KEY_PASSWORD=$PROD_KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Split and sign by architecture
+        run: |
+          set -eu
+          apk="$(find apks/Manager -type f -name '*.apk' | head -n 1)"
+          test -n "$apk"
+          python3 split_apk_by_arch.py             -i "$apk"             -o apks/split             -K "$SIGN_KEYSTORE_FILE"             -A "$SIGN_KEY_ALIAS"             -P "$SIGN_KEYSTORE_PASSWORD"             -S "$SIGN_KEY_PASSWORD"
+          # Each split APK must carry exactly one architecture.
+          for split in apks/split/*.apk; do
+            echo "-- $split"
+            unzip -l "$split" | grep ' lib/' | awk -F/ '{print $2}' | sort -u
+          done
+
+      - name: Publish rolling CI build
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          test -n "$(find apks/split -type f -name '*.apk' -print -quit)"
+          published="${CI_ARTIFACT_ROOT}/manager-ci/${GITHUB_SHA}"
+          mkdir -p "$published"
+          cp -f apks/split/*.apk "$published"/
+          {
+            printf '## Manager CI\n\n'
+            printf -- '- **Branch:** `main`\n'
+            printf -- '- **Commit:** `%s`\n' "$GITHUB_SHA"
+            printf -- '- **Build:** %s\n\n' "${GITHUB_RUN_NUMBER:-unknown}"
+            printf '> Experimental build; may be unstable.\n\n### Recent changes\n\n'
+            git log -5 --format='- %s (`%h`)' "$GITHUB_SHA"
+          } > "$published/notes.md"
+          echo "published to ${published}"
+
+      # The manager's update check reads the release through the Forgejo API, so
+      # the APKs have to exist as release assets, not only on the runner host.
+      - name: Publish the manager-ci release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          # A PAT is only needed if the built-in token cannot create releases.
+          API_TOKEN: ${{ vars.RELEASE_API_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          api="${GITHUB_SERVER_URL}/api/v1/repos/${GITHUB_REPOSITORY}"
+          auth="Authorization: token ${API_TOKEN}"
+          tag=manager-ci
+
+          apk="$(find apks/split -type f -name '*.apk' | head -n 1)"
+          # SukiSU_Nova_manager-ci_30019-arm64-v8a-release.apk -> 30019
+          base="$(basename "$apk")"
+          code="${base##*_}"
+          code="${code%%-*}"
+          test -n "$code"
+
+          release="$api/releases/tags/$tag"
+          if curl -fsS -H "$auth" "$release" >/dev/null 2>&1; then
+            id="$(curl -fsS -H "$auth" "$release" | jq -r '.id')"
+          else
+            payload="$(jq -nc --arg sha "$GITHUB_SHA" --arg name "Manager CI (${code})" \
+              '{tag_name: "manager-ci", target_commitish: $sha, name: $name, prerelease: true,
+                body: "Rolling CI build from main. Experimental; may be unstable."}')"
+            curl -fsS -X POST -H "$auth" -H 'Content-Type: application/json' \
+              -d "$payload" "$api/releases" >/dev/null
+            id="$(curl -fsS -H "$auth" "$release" | jq -r '.id')"
+          fi
+          test -n "$id" && [ "$id" != "null" ]
+
+          # Replace the assets of the previous build; the names carry the version.
+          for asset_id in $(curl -fsS -H "$auth" "$release" | jq -r '.assets[].id'); do
+            curl -fsS -X DELETE -H "$auth" "$api/releases/assets/$asset_id" >/dev/null
+          done
+          for f in apks/split/*.apk; do
+            name="$(basename "$f")"
+            curl -fsS -X POST -H "$auth" \
+              -F "attachment=@${f}" "$api/releases/${id}/assets?name=${name}" >/dev/null
+            echo "uploaded ${name}"
+          done
+
+          # Keep the title in step with the build so the app can parse the version.
+          payload="$(jq -nc --arg name "Manager CI (${code})" '{name: $name, prerelease: true}')"
+          curl -fsS -X PATCH -H "$auth" -H 'Content-Type: application/json' \
+            -d "$payload" "$api/releases/${id}" >/dev/null
+          echo "release ${tag} updated"
+
+      # Secrets cannot be used inside `if:`; a step turns them into an output.
+      - name: Check Telegram configuration
+        id: telegram
+        env:
+          BOT_TOKEN: ${{ vars.BOT_TOKEN || secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ vars.CHAT_ID || secrets.CHAT_ID }}
+        run: |
+          set -eu
+          if [ -n "${BOT_TOKEN:-}" ] && [ -n "${CHAT_ID:-}" ]; then
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+            echo "Telegram upload skipped: set BOT_TOKEN and CHAT_ID to enable it"
+          fi
+
+      - name: Upload to Telegram
+        if: github.event_name != 'pull_request' && steps.telegram.outputs.upload == 'true'
+        timeout-minutes: 20
+        env:
+          CHAT_ID: ${{ vars.CHAT_ID || secrets.CHAT_ID }}
+          BOT_TOKEN: ${{ vars.BOT_TOKEN || secrets.BOT_TOKEN }}
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -eu
+          export VERSION="$(git rev-list --count HEAD)"
+          export TITLE="Manager"
+          # Releases go to their own topic; regular builds use the default one.
+          export MESSAGE_THREAD_ID="${{ inputs.release_upload && (vars.MESSAGE_RELEASES_THREAD_ID || secrets.MESSAGE_RELEASES_THREAD_ID) || vars.MESSAGE_THREAD_ID || secrets.MESSAGE_THREAD_ID }}"
+          mapfile -d '' APKS < <(find ./apks/split -type f -name '*.apk' -print0 | sort -z)
+          test "${#APKS[@]}" -gt 0
+          bash scripts/upload-telegram.sh "${APKS[@]}"

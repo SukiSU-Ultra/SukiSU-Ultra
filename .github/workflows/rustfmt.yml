@@ -1,6 +1,9 @@
 name: Rustfmt check
 
+# Self-hosted runner variant: no marketplace actions. rustfmt needs the nightly
+# toolchain because the repo uses unstable formatting options.
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'main'
@@ -19,15 +22,50 @@ on:
 permissions:
   checks: write
 
+env:
+  RUSTUP_HOME: /usr/local/rustup
+  CARGO_HOME: /ci/tools/cargo
+
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          # One bare mirror per repository lives on the runner host, shared by
+          # every job through the /ci volume. Re-downloading the whole history
+          # per job made parallel jobs stall on the same fetch.
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
 
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rustfmt
+      - name: Check toolchain
+        run: |
+          set -eu
+          rustup toolchain list
+          rustup run nightly rustfmt --version
 
       - name: Run rustfmt
-        run: cargo fmt --all --check
+        run: |
+          set -eu
+          # The stable toolchain is the default; the repo formats with nightly
+          # because rustfmt.toml uses unstable options.
+          cargo +nightly fmt --all --check

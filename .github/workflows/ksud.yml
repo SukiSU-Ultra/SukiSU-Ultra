@@ -1,9 +1,24 @@
 name: Build ksud
+
+# Self-hosted runner variant: checkout, artifact download/upload and the NDK are
+# plain scripts. Cross-job files come from ${CI_ARTIFACT_ROOT} (a host directory
+# mounted into every job container) instead of the GitHub artifact service.
 on:
+  # Dispatchable on its own (all four targets) and callable with a subset:
+  # `targets` is a comma separated list, the matrix keeps every target so a
+  # caller can pick one without duplicating the job.
+  workflow_dispatch:
+    inputs:
+      targets_json:
+        description: 'JSON array of targets, e.g. ["x86_64-linux-android"]'
+        required: false
+        default: '["aarch64-linux-android","x86_64-linux-android","armv7-linux-androideabi","riscv64-linux-android"]'
   workflow_call:
     inputs:
-      target:
-        required: true
+      targets_json:
+        description: 'JSON array of targets'
+        required: false
+        default: '["aarch64-linux-android","x86_64-linux-android","armv7-linux-androideabi","riscv64-linux-android"]'
         type: string
       pack_lkm:
         required: false
@@ -19,83 +34,121 @@ on:
         default: false
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # A JSON array so a caller can ask for a subset; a job-level `if:` cannot
+        # reference matrix values.
+        target: ${{ fromJson(inputs.targets_json) }}
     runs-on: ubuntu-latest
+    env:
+      CARGO_HOME: /ci/tools/cargo
+      RUSTUP_HOME: /usr/local/rustup
+      # Same reason as MAKEFLAGS in ddk-lkm: cap per-job parallelism.
+      CARGO_BUILD_JOBS: "6"
     steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          # One bare mirror per repository lives on the runner host, shared by
+          # every job through the /ci volume. Re-downloading the whole history
+          # per job made parallel jobs stall on the same fetch.
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
 
-    - name: Download artifacts
-      uses: actions/download-artifact@v8
-    
-    - name: Prepare LKM files
-      if: ${{ inputs.pack_lkm }}
-      run: |
-        cp aarch64-android*-lkm/*_kernelsu.ko ./userspace/ksud/bin/aarch64/
-        cp x86_64-android*-lkm/*_kernelsu.ko ./userspace/ksud/bin/x86_64/
-    
-    - name: Prepare ksuinit
-      if: ${{ inputs.pack_ksuinit }}
-      run: |
-        mv ksuinit-aarch64/ksuinit ./userspace/ksud/bin/aarch64/
-        mv ksuinit-arm/ksuinit ./userspace/ksud/bin/arm/
-        mv ksuinit-x86_64/ksuinit ./userspace/ksud/bin/x86_64/
-        mv ksuinit-riscv64/ksuinit ./userspace/ksud/bin/riscv64/
+      - name: Download artifacts
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          mkdir -p artifacts
+          # Every pack_* input below reads from ./artifacts, so mirror the whole
+          # per-run artifact root here and let the individual steps pick.
+          if [ -d "$CI_ARTIFACT_ROOT" ]; then
+            cp -a "$CI_ARTIFACT_ROOT"/. artifacts/
+          fi
+          ls -la artifacts || true
 
-    - name: Prepare BuiltZygisk
-      if: ${{ inputs.pack_builtzygisk }}
-      run: |
-        if [ -d "builtzygisk-aarch64" ]; then
-          cp -r builtzygisk-aarch64/* ./userspace/ksud/bin/aarch64/
-        fi
-        if [ -d "builtzygisk-arm" ]; then
-          cp -r builtzygisk-arm/* ./userspace/ksud/bin/arm/
-        fi
-        if [ -d "builtzygisk-x86_64" ]; then
-          cp -r builtzygisk-x86_64/* ./userspace/ksud/bin/x86_64/
-        fi
-        if [ -d "builtzygisk-riscv64" ]; then
-          cp -r builtzygisk-riscv64/* ./userspace/ksud/bin/riscv64/
-        fi
-        
-    - name: Setup rustup
-      run: |
-        if [ "${{ inputs.target }}" = riscv64-linux-android ]; then
-          rustup toolchain install nightly-2026-09-23 --profile minimal --component rust-src
-        else
-          rustup update stable
-          rustup target add ${{ inputs.target }}
-        fi
+      - name: Prepare LKM files
+        if: ${{ inputs.pack_lkm }}
+        run: |
+          set -eu
+          cp artifacts/aarch64-android*-lkm/*_kernelsu.ko ./userspace/ksud/bin/aarch64/
+          cp artifacts/x86_64-android*-lkm/*_kernelsu.ko ./userspace/ksud/bin/x86_64/
 
-    - uses: Swatinem/rust-cache@v2
-      with:
-        workspaces: userspace/ksud
-        cache-targets: false
+      - name: Prepare ksuinit
+        if: ${{ inputs.pack_ksuinit }}
+        run: |
+          set -eu
+          mv artifacts/ksuinit-aarch64/ksuinit ./userspace/ksud/bin/aarch64/
+          mv artifacts/ksuinit-arm/ksuinit ./userspace/ksud/bin/arm/
+          mv artifacts/ksuinit-x86_64/ksuinit ./userspace/ksud/bin/x86_64/
+          mv artifacts/ksuinit-riscv64/ksuinit ./userspace/ksud/bin/riscv64/
 
-    - uses: nttld/setup-ndk@v1
-      id: setup-ndk
-      with:
-        ndk-version: r29
+      - name: Prepare BuiltZygisk
+        if: ${{ inputs.pack_builtzygisk }}
+        run: |
+          set -eu
+          if [ -d "artifacts/builtzygisk-aarch64" ]; then
+            cp -r artifacts/builtzygisk-aarch64/* ./userspace/ksud/bin/aarch64/
+          fi
+          if [ -d "artifacts/builtzygisk-arm" ]; then
+            cp -r artifacts/builtzygisk-arm/* ./userspace/ksud/bin/arm/
+          fi
+          if [ -d "artifacts/builtzygisk-x86_64" ]; then
+            cp -r artifacts/builtzygisk-x86_64/* ./userspace/ksud/bin/x86_64/
+          fi
+          if [ -d "artifacts/builtzygisk-riscv64" ]; then
+            cp -r artifacts/builtzygisk-riscv64/* ./userspace/ksud/bin/riscv64/
+          fi
 
-    - name: Build ksud
-      env:
-        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-      run: |
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          export KSU_PACKAGE_NAME="com.sukisu.nova.pr"
-        fi
-        if [ "${{ inputs.target }}" = riscv64-linux-android ]; then
-          source .github/scripts/setup-rust-build.sh riscv64-linux-android 35
-          BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-riscv64-android.a"
-          test -f "$BUILTINS"
-          cargo +nightly-2026-09-23 build --config .github/riscv64-cargo.toml -Z build-std=std,panic_abort --target "$TRIPLE" --release --manifest-path ./userspace/ksud/Cargo.toml
-        else
-          source .github/scripts/setup-rust-build.sh ${{ inputs.target }} 26
-          cargo build --target "$TRIPLE" --release --manifest-path ./userspace/ksud/Cargo.toml
-        fi
+      - name: Check toolchain
+        run: |
+          set -eu
+          cargo --version
+          rustup toolchain list
+          rustup target list --installed
+          test -x "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
 
-    - name: Upload ksud artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: ksud-${{ inputs.target }}
-        path: target/${{ inputs.target }}/release/ksud
+      - name: Build ksud
+        run: |
+          set -eu
+          if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+            export KSU_PACKAGE_NAME="com.sukisu.nova.pr"
+          fi
+          if [ "${{ matrix.target }}" = riscv64-linux-android ]; then
+            source .github/scripts/setup-rust-build.sh riscv64-linux-android 35
+            BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-riscv64-android.a"
+            test -f "$BUILTINS"
+            cargo +nightly-2026-09-23 build --config .github/riscv64-cargo.toml \
+              -Z build-std=std,panic_abort --target "$TRIPLE" --release \
+              --manifest-path ./userspace/ksud/Cargo.toml
+          else
+            source .github/scripts/setup-rust-build.sh "${{ matrix.target }}" 26
+            cargo build --target "$TRIPLE" --release \
+              --manifest-path ./userspace/ksud/Cargo.toml
+          fi
+
+      - name: Upload ksud artifact
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          ci_artifact_put "ksud-${{ matrix.target }}" \
+            "target/${{ matrix.target }}/release/ksud"

@@ -599,7 +599,7 @@ private fun SupportLinks(
                     tint = colorScheme.onBackground,
                 )
             },
-            onClick = { onOpenUrl("https://opencollective.com/SukiSU-Nova") },
+            onClick = { onOpenUrl("https://opencollective.com/SukiSU-Ultra") },
         )
         ArrowPreference(
             title = stringResource(R.string.home_learn_kernelsu),

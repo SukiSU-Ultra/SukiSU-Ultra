@@ -57,9 +57,12 @@ fun checkNewVersion(): LatestVersionInfo = checkReleaseVersion("latest", isCi = 
 
 fun checkNewCiVersion(): LatestVersionInfo = checkReleaseVersion("tags/manager-ci", isCi = true)
 
+private const val RELEASE_API =
+    "https://git.zako.shirkneko.top:20004/api/v1/repos/shirkneko/SukiSU/releases"
+
 private fun checkReleaseVersion(endpoint: String, isCi: Boolean): LatestVersionInfo {
     if (!isNetworkAvailable(ksuApp)) return LatestVersionInfo()
-    val url = "https://api.github.com/repos/SukiSU-Nova/SukiSU-Nova/releases/$endpoint"
+    val url = "$RELEASE_API/$endpoint"
     return runCatching {
         ksuApp.okhttpClient.newCall(Request.Builder().url(url).build()).execute().use { response ->
             if (!response.isSuccessful) {
@@ -84,7 +87,7 @@ private fun checkReleaseVersion(endpoint: String, isCi: Boolean): LatestVersionI
                         return LatestVersionInfo()
                     }
                 val downloadUrl = apk.optString("browser_download_url")
-                    .takeIf { it.startsWith("https://github.com/SukiSU-Nova/SukiSU-Nova/releases/download/manager-ci/") }
+                    .takeIf { it.startsWith("https://git.zako.shirkneko.top:20004/shirkneko/SukiSU/releases/download/manager-ci/") }
                     ?: return LatestVersionInfo()
                 return LatestVersionInfo(versionCode, downloadUrl, changelog)
             }

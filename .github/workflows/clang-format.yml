@@ -1,6 +1,10 @@
 name: ClangFormat check
 
+# Self-hosted runner variant: no marketplace actions, so nothing is fetched
+# from github.com. Checkout pulls from the public Forgejo endpoint because build
+# containers cannot reach the WSL EasyTier tunnel.
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'main'
@@ -26,7 +30,35 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          # One bare mirror per repository lives on the runner host, shared by
+          # every job through the /ci volume. Re-downloading the whole history
+          # per job made parallel jobs stall on the same fetch.
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Check toolchain
+        run: clang-format --version
 
       - name: check
         working-directory: kernel

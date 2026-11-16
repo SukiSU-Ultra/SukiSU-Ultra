@@ -1,4 +1,8 @@
 name: Build LKM for KernelSU
+
+# Self-hosted runner variant. This file only fans the matrix out to ddk-lkm.yml,
+# which is a reusable workflow in the same repository, so it needs no rewrite:
+# local `uses:` never reaches github.com.
 on:
   workflow_call:
     inputs:

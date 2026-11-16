@@ -1,105 +1,156 @@
 name: Release
-permissions:
-  contents: write
-  actions: write
+
+# Assembles a release: kernel modules, ksuinit, ksud, the manager APK, then the
+# publish step. Each stage is its own workflow so any of them can be dispatched
+# alone. All of them write to /ci/runs/<run_id>/<artifact> on the runner host, and
+# a stage can reuse an earlier result by dispatching the workflow that needs it
+# with artifacts_run=<id>.
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      artifacts_run:
+        description: 'Reuse ksud/LKM/ksuinit from this run id (empty = build them)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
-  build-manager:
-    uses: ./.github/workflows/build-manager.yml
-    secrets: inherit
+
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_code: ${{ steps.version.outputs.version_code }}
+    steps:
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Calculate version code
+        id: version
+        run: |
+          set -eu
+          COMMIT_COUNT=$(git rev-list --count refs/remotes/origin/main)
+          VERSION_CODE=$((30000 + COMMIT_COUNT + 998))
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "KernelSU version code: $VERSION_CODE (main commits: $COMMIT_COUNT)"
+
+  build-lkm:
+    needs: [determine-version]
+    uses: ./.github/workflows/build-lkm.yml
     with:
+      version_code: ${{ needs.determine-version.outputs.version_code }}
       release_build: true
+    secrets: inherit
+
+  build-ksuinit:
+    uses: ./.github/workflows/ksuinit.yml
+
+  build-ksud:
+    needs: [build-lkm, build-ksuinit]
+    uses: ./.github/workflows/ksud.yml
+    with:
+      pack_lkm: true
+      pack_ksuinit: true
+      pack_builtzygisk: false
+
+  manager:
+    needs: build-ksud
+    uses: ./.github/workflows/manager.yml
+    with:
+      artifacts_run: ''
+      release_build: true
+    secrets: inherit
+
+  publish:
+    needs: manager
+    uses: ./.github/workflows/publish.yml
+    with:
       release_upload: true
-  release:
-    needs:
-      - build-manager
+    secrets: inherit
+
+  assemble:
+    needs: [build-lkm, build-ksuinit, build-ksud, manager]
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v8
-
-      - name: Rename ksud
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p ksud
-          for dir in ./ksud-*; do
-            if [ -d "$dir" ]; then
-                echo "----- Rename $dir -----"
-                ksud_platform_name=$(basename "$dir")
-                if [ -f "$dir/ksud" ]; then
-                  mv "$dir/ksud" "ksud/$ksud_platform_name"
-                elif [ -f "$dir/ksud.exe" ]; then
-                  mv "$dir/ksud.exe" "ksud/$ksud_platform_name.exe"
-                fi
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Collect release files
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          mkdir -p artifacts
+          for name in Manager \
+                      ksud-aarch64-linux-android ksud-armv7-linux-androideabi \
+                      ksud-x86_64-linux-android ksud-riscv64-linux-android \
+                      ksuinit-aarch64 ksuinit-arm ksuinit-x86_64 ksuinit-riscv64; do
+            if ci_artifact_exists "$name"; then
+              ci_artifact_get "$name" "artifacts/$name"
             fi
           done
-
-      - name: Rename ksuinit
-        run: |
-          mkdir -p ksuinit
-          for dir in ./ksuinit-*; do
-            if [ -d "$dir" ]; then
-                echo "----- Rename $dir -----"
-                ksuinit_platform_name=$(basename "$dir")
-                if [ -f "$dir/ksuinit" ]; then
-                  mv "$dir/ksuinit" "ksuinit/$ksuinit_platform_name"
-                fi
-            fi
+          # The LKM artifacts are named per KMI, so pick them up by pattern.
+          for dir in "$CI_ARTIFACT_ROOT"/*-android*-lkm; do
+            [ -d "$dir" ] || continue
+            name="$(basename "$dir")"
+            ci_artifact_get "$name" "artifacts/$name"
           done
 
-      - name: Rename lkm
-        run: |
-          mkdir -p lkm
-          for dir in ./*-android*-lkm; do
-            if [ -d "$dir" ]; then
-                echo "----- Rename $dir -----"
-                lkm_platform_name=$(basename "$dir")
-                lkm_platform_name="lkm-${lkm_platform_name%-lkm}_kernelsu.ko"
-                KO="$(ls $dir/*_kernelsu.ko)"
-                mv "$KO" "lkm/$lkm_platform_name"
-            fi
-          done
-      - name: Zip AnyKernel3
-        run: |
-          for dir in AnyKernel3-*; do
-            if [ -d "$dir" ]; then
-              echo "----- Zip $dir -----"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
+          out="${CI_ARTIFACT_ROOT}/release"
+          mkdir -p "$out" "$out/lkm" "$out/ksud" "$out/ksuinit"
+
+          cp -f artifacts/Manager/*.apk "$out"/ 2>/dev/null || true
+
+          for d in artifacts/*-android*-lkm; do
+            [ -d "$d" ] || continue
+            name="$(basename "$d")"
+            cp -f "$d"/*_kernelsu.ko "$out/lkm/lkm-${name%-lkm}_kernelsu.ko"
           done
 
-      - name: Zip WSA kernel
-        run: |
-          for dir in kernel-WSA-*; do
-            if [ -d "$dir" ]; then
-              echo "------ Zip $dir ----------"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
+          for d in artifacts/ksud-*; do
+            [ -d "$d" ] || continue
+            cp -f "$d"/ksud* "$out/ksud/$(basename "$d")" 2>/dev/null || true
           done
 
-      - name: Zip ChromeOS ARCVM kernel
-        run: |
-          for dir in kernel-ARCVM-*; do
-            if [ -d "$dir" ]; then
-              echo "------ Zip $dir ----------"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
+          for d in artifacts/ksuinit-*; do
+            [ -d "$d" ] || continue
+            cp -f "$d"/ksuinit "$out/ksuinit/$(basename "$d")" 2>/dev/null || true
           done
 
-      - name: Display structure of downloaded files
-        run: ls -R
-
-      - name: release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          files: |
-            Manager/*.apk
-            Manager-spoofed/*.apk
-            lkm/lkm-*_kernelsu.ko
-            ksud/ksud-*
-            ksuinit/*
+          find "$out" -type f | sort
+          test -n "$(ls -A "$out")"
+          echo "release files collected in ${out}"

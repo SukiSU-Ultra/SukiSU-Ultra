@@ -243,7 +243,7 @@ class CiManagerUpdater(private val context: Context) {
 
     companion object {
         private const val RELEASE_ASSET_PREFIX =
-            "https://github.com/SukiSU-Nova/SukiSU-Nova/releases/download/"
+            "https://git.zako.shirkneko.top:20004/shirkneko/SukiSU/releases/download/"
         private const val MAX_APK_BYTES = 512L * 1024 * 1024
         private val SUPPORTED_ABIS = setOf("arm64-v8a", "armeabi-v7a", "x86_64", "riscv64")
     }

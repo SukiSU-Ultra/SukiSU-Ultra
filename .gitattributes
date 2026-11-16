@@ -1,1 +1,6 @@
 *.bat eol=crlf
+
+# Scripts and workflow files must stay LF: the runner containers and the shell
+# in the ddk-min image reject CRLF shebangs.
+*.sh text eol=lf
+.github/workflows/*.yml text eol=lf

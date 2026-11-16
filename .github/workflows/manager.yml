@@ -1,0 +1,505 @@
+name: Build Manager APK
+
+# Packages the manager APK from ksud binaries that were built earlier.
+#
+# Forgejo ignores `if:` on a job that uses a reusable workflow, so this cannot be
+# a switch inside build-manager.yml: the APK jobs live here instead, and the full
+# pipeline calls this workflow at the end.
+on:
+  workflow_call:
+    inputs:
+      artifacts_run:
+        description: 'Run id whose /ci/runs/<id> already holds ksud artifacts'
+        required: false
+        default: ''
+        type: string
+      keystore:
+        description: 'PR keystore (base64); empty for the production key'
+        required: false
+        default: ''
+        type: string
+      keystore_password:
+        description: 'PR keystore password'
+        required: false
+        default: ''
+        type: string
+      key_password:
+        description: 'PR key password'
+        required: false
+        default: ''
+        type: string
+      release_build:
+        description: 'Mark version metadata as a release build'
+        required: false
+        default: false
+        type: boolean
+      release_upload:
+        description: 'Upload to the releases Telegram thread'
+        required: false
+        default: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      artifacts_run:
+        description: 'Run id holding the ksud artifacts (empty = this run)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+
+  # ------------------------------------------------------------
+  # Build the Manager APK
+  # ------------------------------------------------------------
+
+  build-manager:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./manager
+
+    env:
+      GRADLE_USER_HOME: /ci/tools/gradle
+
+    steps:
+
+      - name: Checkout
+        # The job defaults to ./manager, which does not exist before the clone.
+        working-directory: ${{ github.workspace }}
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          # One bare mirror per repository lives on the runner host, shared by
+          # every job through the /ci volume. Re-downloading the whole history
+          # per job made parallel jobs stall on the same fetch.
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Set artifact name
+        id: determine
+        run: echo "title=Manager" >> "$GITHUB_OUTPUT"
+
+      # --------------------------------------------------------
+      # Reproduce the original SukiSU randomizer
+      #
+      # This is intentionally executed BEFORE Gradle.
+      # --------------------------------------------------------
+
+      # --------------------------------------------------------
+      # Signing configuration
+      # --------------------------------------------------------
+
+      - name: Write key
+        if: inputs.keystore == ''
+        run: |
+          if [ ! -z "${{ vars.KEYSTORE || secrets.KEYSTORE }}" ]; then
+            {
+              echo KEYSTORE_PASSWORD='${{ vars.KEYSTORE_PASSWORD || secrets.KEYSTORE_PASSWORD }}'
+              echo KEY_ALIAS='${{ vars.KEY_ALIAS || secrets.KEY_ALIAS }}'
+              echo KEY_PASSWORD='${{ vars.KEY_PASSWORD || secrets.KEY_PASSWORD }}'
+              echo KEYSTORE_FILE='key.jks'
+            } >> gradle.properties
+
+            echo "${{ vars.KEYSTORE || secrets.KEYSTORE }}" | base64 -d > key.jks
+          fi
+
+      - name: Write PR key
+        if: inputs.keystore != ''
+        env:
+          PR_KEYSTORE: ${{ inputs.keystore }}
+          PR_KEYSTORE_PASSWORD: ${{ inputs.keystore_password }}
+          PR_KEY_PASSWORD: ${{ inputs.key_password }}
+        run: |
+          echo "$PR_KEYSTORE" | base64 -d > pr-key.jks
+
+          {
+            echo KEYSTORE_PASSWORD="$PR_KEYSTORE_PASSWORD"
+            echo KEY_ALIAS='pr-key'
+            echo KEY_PASSWORD="$PR_KEY_PASSWORD"
+            echo KEYSTORE_FILE='pr-key.jks'
+          } >> gradle.properties
+
+      # --------------------------------------------------------
+      # Java / Gradle / Android SDK
+      # --------------------------------------------------------
+
+      - name: Check toolchain
+        run: |
+          set -eu
+          java -version
+          apksigner --version
+          python3 --version
+
+      - name: Download ksud artifacts
+        env:
+          ARTIFACTS_RUN: ${{ inputs.artifacts_run }}
+        run: |
+          set -eu
+          . "${GITHUB_WORKSPACE}/.github/scripts/ci/common.sh"
+          # Rebuild-only runs take the native artifacts from an earlier run.
+          if [ -n "$ARTIFACTS_RUN" ]; then
+            # This run has not written anything yet, so its root does not exist.
+            mkdir -p "${CI_ARTIFACT_ROOT}"
+            cp -a "/ci/runs/${ARTIFACTS_RUN}"/* "${CI_ARTIFACT_ROOT}/"
+          fi
+          mkdir -p "${GITHUB_WORKSPACE}/artifacts"
+          for t in aarch64-linux-android armv7-linux-androideabi x86_64-linux-android; do
+            ci_artifact_get "ksud-${t}" "${GITHUB_WORKSPACE}/artifacts/ksud-${t}"
+          done
+
+      # --------------------------------------------------------
+      # Copy ksud into Manager
+      # --------------------------------------------------------
+
+      - name: Copy ksud to app jniLibs
+        run: |
+          set -e
+
+          mkdir -p app/src/main/jniLibs/arm64-v8a
+          mkdir -p app/src/main/jniLibs/armeabi-v7a
+          mkdir -p app/src/main/jniLibs/x86_64
+
+          ARM64_KSUD=$(find ../artifacts/ksud-aarch64-linux-android \
+            -type f -name ksud | head -n 1)
+
+          ARM_KSUD=$(find ../artifacts/ksud-armv7-linux-androideabi \
+            -type f -name ksud | head -n 1)
+
+          X86_64_KSUD=$(find ../artifacts/ksud-x86_64-linux-android \
+            -type f -name ksud | head -n 1)
+
+          test -n "$ARM64_KSUD"
+          test -n "$ARM_KSUD"
+          test -n "$X86_64_KSUD"
+
+          # Randomize the packaged identity on every build so detectors cannot
+          # pin stable anchors: the daemon/JNI library names and the component
+          # class names (Application, ZygotePreload, activities, services).
+          # Only the copies inside the APK change; /data/adb/ksud, the kernel
+          # sucompat path and the module layout stay untouched.
+          # Lowercase letters only: a hex name is itself a fingerprint that
+          # /lib[0-9a-f]+\.so/ matches, while letter names look like ordinary
+          # third-party libraries.
+          rand_alpha() {
+            openssl rand -base64 48 | tr -dc 'a-z' | cut -c1-"$1"
+          }
+          KSUD_LIB="lib$(rand_alpha 10).so"
+          CORE_LIB="$(rand_alpha 11)"
+          APP_CLASS="$(rand_alpha 11)"
+          PRELOAD_CLASS="$(rand_alpha 11)"
+          MAIN_CLASS="$(rand_alpha 11)"
+          WEBUI_CLASS="$(rand_alpha 11)"
+          DOWNLOAD_CLASS="$(rand_alpha 11)"
+          MAGICA_CLASS="$(rand_alpha 11)"
+
+          # Rewrite every identifier reference in one pass: sources, manifest
+          # component names, JNI symbol names and the CMake targets.
+          find app/src/main -type f \
+            \( -name '*.kt' -o -name '*.java' -o -name '*.xml' \
+               -o -name '*.cc' -o -name 'CMakeLists.txt' \) \
+            -exec sed -i \
+              -e "s/\"libksud\.so\"/\"$KSUD_LIB\"/g" \
+              -e "s/project(\"kernelsu\")/project(\"$CORE_LIB\")/" \
+              -e "s/add_library(kernelsu/add_library($CORE_LIB/" \
+              -e "s/target_include_directories(kernelsu /target_include_directories($CORE_LIB /" \
+              -e "s/target_link_libraries(kernelsu /target_link_libraries($CORE_LIB /" \
+              -e "s/loadLibrary(\"kernelsu\")/loadLibrary(\"$CORE_LIB\")/g" \
+              -e "/^[[:space:]]*[*\/]/!s/KernelSUApplication/${APP_CLASS}Application/g" \
+              -e "/^[[:space:]]*[*\/]/!s/AppZygotePreload/${PRELOAD_CLASS}Preload/g" \
+              -e "/^[[:space:]]*[*\/]/!s/MainActivity/${MAIN_CLASS}Activity/g" \
+              -e "/^[[:space:]]*[*\/]/!s/WebUIActivity/${WEBUI_CLASS}Activity/g" \
+              -e "/^[[:space:]]*[*\/]/!s/DownloadService/${DOWNLOAD_CLASS}Service/g" \
+              -e "/^[[:space:]]*[*\/]/!s/MagicaService/${MAGICA_CLASS}Service/g" \
+              {} +
+
+          # Rename the files that carry the identifier in their names.
+          find app/src/main -depth -type f -name 'KernelSUApplication.kt' \
+            -execdir mv {} "${APP_CLASS}Application.kt" \;
+          find app/src/main -depth -type f -name 'AppZygotePreload.java' \
+            -execdir mv {} "${PRELOAD_CLASS}Preload.java" \;
+          find app/src/main -depth -type f -name 'MainActivity.kt' \
+            -execdir mv {} "${MAIN_CLASS}Activity.kt" \;
+          find app/src/main -depth -type f -name 'MainActivityUiState.kt' \
+            -execdir mv {} "${MAIN_CLASS}ActivityUiState.kt" \;
+          find app/src/main -depth -type f -name 'MainActivityViewModel.kt' \
+            -execdir mv {} "${MAIN_CLASS}ActivityViewModel.kt" \;
+          find app/src/main -depth -type f -name 'WebUIActivity.kt' \
+            -execdir mv {} "${WEBUI_CLASS}Activity.kt" \;
+          find app/src/main -depth -type f -name 'DownloadService.kt' \
+            -execdir mv {} "${DOWNLOAD_CLASS}Service.kt" \;
+          find app/src/main -depth -type f -name 'MagicaService.java' \
+            -execdir mv {} "${MAGICA_CLASS}Service.java" \;
+
+          echo "Packaged identity: $KSUD_LIB, lib$CORE_LIB.so, ${APP_CLASS}Application, ${PRELOAD_CLASS}Preload"
+
+          cp -f "$ARM64_KSUD" \
+            "app/src/main/jniLibs/arm64-v8a/$KSUD_LIB"
+
+          cp -f "$ARM_KSUD" \
+            "app/src/main/jniLibs/armeabi-v7a/$KSUD_LIB"
+
+          cp -f "$X86_64_KSUD" \
+            "app/src/main/jniLibs/x86_64/$KSUD_LIB"
+
+      # --------------------------------------------------------
+      # Build APK
+      # --------------------------------------------------------
+
+      - name: Build with Gradle
+        env:
+          # The kpm tools are release assets of the mirrored KernelPatch repo;
+          # raw.githubusercontent.com is not reachable from this network.
+          KPM_TOOLS_BASE_URL: https://git.zako.shirkneko.top:20004/shirkneko/SukiSU_KernelPatch_patch/releases/download/0.14.0
+        run: |
+          set -eu
+          # Not ./gradlew: the wrapper downloads its distribution from
+          # services.gradle.org, which redirects to github.com. The image ships
+          # the same Gradle release at /opt/gradle.
+          gradle clean
+          # downloadKpmTools fetches these from raw.githubusercontent.com and
+          # skips the download when both files are already in place.
+          kpm=app/build/generated/kpmTools
+          mkdir -p "$kpm/jniLibs/arm64-v8a" "$kpm/assets/kpm"
+          cp -f /opt/kpm-tools/kptools-android "$kpm/jniLibs/arm64-v8a/libkptools.so"
+          cp -f /opt/kpm-tools/kpimg "$kpm/assets/kpm/kpimg"
+          if [ -n "${{ inputs.keystore }}" ]; then
+            gradle assembleRelease -PIS_PR_BUILD=true
+          else
+            gradle assembleRelease
+          fi
+
+      # --------------------------------------------------------
+      # Upload un-repacked APK
+      # --------------------------------------------------------
+
+      - name: Upload Gradle APK
+        run: |
+          set -eu
+          . "${GITHUB_WORKSPACE}/.github/scripts/ci/common.sh"
+          ci_artifact_put "${{ steps.determine.outputs.title }}-gradle" \
+            "${GITHUB_WORKSPACE}/manager/app/build/outputs/apk/release/"*.apk
+
+      # --------------------------------------------------------
+      # Upload mappings
+      # --------------------------------------------------------
+
+      - name: Upload mappings
+        run: |
+          set -eu
+          . "${GITHUB_WORKSPACE}/.github/scripts/ci/common.sh"
+          # A PR build does not always produce a mapping directory.
+          if [ ! -d "${GITHUB_WORKSPACE}/manager/app/build/outputs/mapping/release" ]; then
+            echo "no mapping directory, skipping"
+            exit 0
+          fi
+          ci_artifact_put "${{ steps.determine.outputs.title }}-mappings" \
+            "${GITHUB_WORKSPACE}/manager/app/build/outputs/mapping/release/"
+
+  # ------------------------------------------------------------
+  # Repack the APK
+  # ------------------------------------------------------------
+
+  repack-manager:
+    needs: [build-manager]
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          # One bare mirror per repository lives on the runner host, shared by
+          # every job through the /ci volume. Re-downloading the whole history
+          # per job made parallel jobs stall on the same fetch.
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Set artifact name
+        id: determine
+        run: echo "title=Manager" >> "$GITHUB_OUTPUT"
+
+      - name: Check toolchain
+        run: |
+          set -eu
+          java -version
+          apksigner --version
+          python3 --version
+
+      - name: Download artifacts
+        env:
+          ARTIFACTS_RUN: ${{ inputs.artifacts_run }}
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          if [ -n "$ARTIFACTS_RUN" ] && [ ! -d "${CI_ARTIFACT_ROOT}/${{ steps.determine.outputs.title }}-gradle" ]; then
+            cp -a "/ci/runs/${ARTIFACTS_RUN}"/* "${CI_ARTIFACT_ROOT}/"
+          fi
+          ci_artifact_get "${{ steps.determine.outputs.title }}-gradle" artifacts/manager-gradle
+          for t in aarch64-linux-android armv7-linux-androideabi x86_64-linux-android riscv64-linux-android; do
+            ci_artifact_get "ksud-${t}" "artifacts/ksud-${t}"
+          done
+
+      # --------------------------------------------------------
+      # Place Manager APK and ksud artifacts
+      # --------------------------------------------------------
+
+      - name: Place manager apk and ksud artifacts
+        id: place_artifacts
+        run: |
+          set -e
+
+          mkdir -p manager/app/build/outputs/apk/release
+
+          APK=$(find artifacts/manager-gradle \
+            -type f -name "*.apk" | head -n 1)
+
+          test -n "$APK"
+
+          echo "APK_STEM=$(basename "$APK" .apk)" >> "$GITHUB_OUTPUT"
+
+          cp -f "$APK" \
+            manager/app/build/outputs/apk/release/
+
+          mkdir -p target/aarch64-linux-android/release
+          mkdir -p target/armv7-linux-androideabi/release
+          mkdir -p target/x86_64-linux-android/release
+          mkdir -p target/riscv64-linux-android/release
+
+          ARM64_KSUD=$(find artifacts/ksud-aarch64-linux-android \
+            -type f -name ksud | head -n 1)
+
+          ARM_KSUD=$(find artifacts/ksud-armv7-linux-androideabi \
+            -type f -name ksud | head -n 1)
+
+          X86_64_KSUD=$(find artifacts/ksud-x86_64-linux-android \
+            -type f -name ksud | head -n 1)
+
+          RISCV64_KSUD=$(find artifacts/ksud-riscv64-linux-android \
+            -type f -name ksud | head -n 1)
+
+          test -n "$ARM64_KSUD"
+          test -n "$ARM_KSUD"
+          test -n "$X86_64_KSUD"
+          test -n "$RISCV64_KSUD"
+
+          cp -f "$ARM64_KSUD" \
+            target/aarch64-linux-android/release/ksud
+
+          cp -f "$ARM_KSUD" \
+            target/armv7-linux-androideabi/release/ksud
+
+          cp -f "$X86_64_KSUD" \
+            target/x86_64-linux-android/release/ksud
+
+          cp -f "$RISCV64_KSUD" \
+            target/riscv64-linux-android/release/ksud
+
+      # --------------------------------------------------------
+      # Prepare signing inputs
+      # --------------------------------------------------------
+
+      - name: Prepare signing inputs
+        env:
+          PR_KEYSTORE: ${{ inputs.keystore }}
+          PR_KEYSTORE_PASSWORD: ${{ inputs.keystore_password }}
+          PR_KEY_PASSWORD: ${{ inputs.key_password }}
+
+          PROD_KEYSTORE: ${{ vars.KEYSTORE || secrets.KEYSTORE }}
+          PROD_KEY_ALIAS: ${{ vars.KEY_ALIAS || secrets.KEY_ALIAS }}
+          PROD_KEYSTORE_PASSWORD: ${{ vars.KEYSTORE_PASSWORD || secrets.KEYSTORE_PASSWORD }}
+          PROD_KEY_PASSWORD: ${{ vars.KEY_PASSWORD || secrets.KEY_PASSWORD }}
+        run: |
+          set -eu
+          if [ -n "$PR_KEYSTORE" ]; then
+
+            echo "$PR_KEYSTORE" | base64 -d > pr-key.jks
+
+            echo "SIGN_KEYSTORE_FILE=pr-key.jks" >> "$GITHUB_ENV"
+            echo "SIGN_KEY_ALIAS=pr-key" >> "$GITHUB_ENV"
+            echo "SIGN_KEYSTORE_PASSWORD=$PR_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "SIGN_KEY_PASSWORD=$PR_KEY_PASSWORD" >> "$GITHUB_ENV"
+
+          else
+
+            test -n "$PROD_KEYSTORE"
+
+            echo "$PROD_KEYSTORE" | base64 -d > key.jks
+
+            echo "SIGN_KEYSTORE_FILE=key.jks" >> "$GITHUB_ENV"
+            echo "SIGN_KEY_ALIAS=$PROD_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "SIGN_KEYSTORE_PASSWORD=$PROD_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "SIGN_KEY_PASSWORD=$PROD_KEY_PASSWORD" >> "$GITHUB_ENV"
+
+          fi
+
+      # --------------------------------------------------------
+      # Repack and resign
+      # --------------------------------------------------------
+
+      - name: Repack and resign
+        run: |
+          set -eu
+          OUTPUT_NAME="${{ steps.place_artifacts.outputs.APK_STEM }}"
+
+          python3 repack_apk.py repack \
+            -b release \
+            -t release \
+            -a arm64-v8a \
+            -a armeabi-v7a \
+            -a x86_64 \
+            -a riscv64 \
+            -K "$SIGN_KEYSTORE_FILE" \
+            -A "$SIGN_KEY_ALIAS" \
+            -P "$SIGN_KEYSTORE_PASSWORD" \
+            -S "$SIGN_KEY_PASSWORD" \
+            --strip \
+            --output-name "$OUTPUT_NAME"
+
+      # --------------------------------------------------------
+      # Upload final APK
+      # --------------------------------------------------------
+
+      - name: Upload build artifact
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          ci_artifact_put "${{ steps.determine.outputs.title }}" \
+            dist/*.apk

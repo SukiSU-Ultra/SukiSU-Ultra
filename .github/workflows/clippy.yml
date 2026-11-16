@@ -1,6 +1,10 @@
 name: Clippy check
 
+# Self-hosted runner variant. actions/checkout, Swatinem/rust-cache and
+# nttld/setup-ndk are replaced with plain scripts; rustup and the NDK are cached
+# under /ci/tools on the runner host so repeat runs skip the downloads.
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,6 +12,7 @@ on:
     paths:
       - '.github/workflows/clippy.yml'
       - 'userspace/**'
+      - '.github/scripts/ci/**'
   pull_request:
     branches:
       - main
@@ -15,33 +20,57 @@ on:
     paths:
       - '.github/workflows/clippy.yml'
       - 'userspace/**'
+      - '.github/scripts/ci/**'
 
 env:
   RUSTFLAGS: '-Dwarnings'
+  CARGO_HOME: /ci/tools/cargo
+  RUSTUP_HOME: /usr/local/rustup
+  # Cap per-job parallelism: several job containers run at once.
+  CARGO_BUILD_JOBS: "6"
 
 jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          # One bare mirror per repository lives on the runner host, shared by
+          # every job through the /ci volume. Re-downloading the whole history
+          # per job made parallel jobs stall on the same fetch.
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
 
-      - run: rustup update stable
-      
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: userspace/ksud
-
-      - uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: r29
+      - name: Check toolchain
+        run: |
+          set -eu
+          cargo --version
+          cargo clippy --version
+          rustup target list --installed
+          "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version | head -1
 
       - name: Run clippy
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          rustup target add aarch64-linux-android
-          rustup target add x86_64-linux-android
+          set -eu
           source .github/scripts/setup-rust-build.sh aarch64-linux-android 26
           source .github/scripts/setup-rust-build.sh x86_64-linux-android 26
           cargo clippy --target aarch64-linux-android --release
