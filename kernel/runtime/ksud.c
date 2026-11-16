@@ -55,9 +55,7 @@ void on_post_fs_data(void)
     ksu_observer_init();
     // sanity check, this may influence the performance
     stop_input_hook();
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
     ksu_selinux_hide_handle_post_fs_data();
-#endif
     // retry forced features which failed at second stage
     ksu_feature_apply_forced();
     ksu_extension_apply_forced();
@@ -97,9 +95,7 @@ void on_boot_completed(void)
     ksu_boot_completed = true;
     pr_info("on_boot_completed!\n");
     track_throne(true);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
     ksu_selinux_hide_drop_backup_if_unused();
-#endif
 }
 
 #define MAX_ARG_STRINGS 0x7FFFFFFF
@@ -204,9 +200,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 #ifndef KSU_NO_PREINIT
                 ksu_preinit_release();
 #endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
                 ksu_selinux_hide_handle_second_stage();
-#endif
                 apply_kernelsu_rules();
                 cache_sid();
                 setup_ksu_cred();
@@ -284,9 +278,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
 #ifndef KSU_NO_PREINIT
             ksu_preinit_release();
 #endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
             ksu_selinux_hide_handle_second_stage();
-#endif
             apply_kernelsu_rules();
             cache_sid();
             setup_ksu_cred();
