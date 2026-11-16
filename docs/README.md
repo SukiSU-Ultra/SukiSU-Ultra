@@ -1,7 +1,7 @@
 # SukiSU Nova
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="SukiSU Nova logo">
 
-**English** [简体中文](./README_zh.md) |
+**English** [简体中文](zh/README.md) |
 
 A kernel-based root solution for Android, evolved from [`tiann/KernelSU`](https://github.com/tiann/KernelSU) with some interesting changes added.
 
@@ -60,7 +60,7 @@ Developed based on [KernelPatch](https://github.com/bmax121/KernelPatch), with f
    Make sure the flashed kernel matches the manager version, and check whether `su` is in PATH.
 
 3. **Kernel compilation errors?**  
-   Refer to [`guide/how-to-integrate.md`](guide/how-to-integrate.md), and make sure the kernel version meets the minimum requirement (4.14+).
+   Refer to [`how-to-integrate`](https://sukisu.org/guide/how-to-integrate), and make sure the kernel version meets the minimum requirement (4.14+).
 
 ## Contributing Translations
 
@@ -71,7 +71,7 @@ To translate SukiSU Nova into your language, or improve existing translations, p
 ## License
 
 - All files under the `kernel` directory are licensed under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
-- The `ic_launcher(?!.*alt.*).*` icon files featuring anime character images are licensed in a special form: drawn by 怡子曰曰 (Yizi Yueyue), copyright owned by 明风OuO (Mingfeng OuO). The vectorized icons are provided by this project. See [`LICENSE_icon_English`](./LICENSE_icon_English) and [`LICENSE_icon_SC`](./LICENSE_icon_SC) for details.
+- The `ic_launcher(?!.*alt.*).*` icon files featuring anime character images are licensed in a special form: drawn by 怡子曰曰 (Yizi Yueyue), copyright owned by 明风OuO (Mingfeng OuO). The vectorized icons are provided by this project. See [`LICENSE_icon_English`](/LICENSE_icon_English) and [`LICENSE_icon_SC`](/LICENSE_icon_SC) for details.
 - All other parts, except the files and directories mentioned above, are licensed under [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ## Sponsors
