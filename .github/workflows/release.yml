@@ -53,7 +53,7 @@ jobs:
         run: |
           set -eu
           COMMIT_COUNT=$(git rev-list --count refs/remotes/origin/main)
-          VERSION_CODE=$((30000 + COMMIT_COUNT + 998))
+          VERSION_CODE=$((30000 + COMMIT_COUNT + 996))
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "KernelSU version code: $VERSION_CODE (main commits: $COMMIT_COUNT)"
 
@@ -68,13 +68,16 @@ jobs:
   build-ksuinit:
     uses: ./.github/workflows/ksuinit.yml
 
+  build-builtzygisk:
+    uses: ./.github/workflows/builtzygisk.yml
+
   build-ksud:
-    needs: [build-lkm, build-ksuinit]
+    needs: [build-lkm, build-ksuinit, build-builtzygisk]
     uses: ./.github/workflows/ksud.yml
     with:
       pack_lkm: true
       pack_ksuinit: true
-      pack_builtzygisk: false
+      pack_builtzygisk: true
 
   manager:
     needs: build-ksud
@@ -129,6 +132,13 @@ jobs:
             name="$(basename "$dir")"
             ci_artifact_get "$name" "artifacts/$name"
           done
+          # The zygisk payload is what ksud embeds; publishing it as well makes the
+          # release self-explanatory instead of relying on a binary inspection.
+          for arch in aarch64 arm x86_64 riscv64; do
+            if ci_artifact_exists "builtzygisk-$arch"; then
+              ci_artifact_get "builtzygisk-$arch" "artifacts/builtzygisk-$arch"
+            fi
+          done
 
           out="${CI_ARTIFACT_ROOT}/release"
           mkdir -p "$out" "$out/lkm" "$out/ksud" "$out/ksuinit"
@@ -151,6 +161,119 @@ jobs:
             cp -f "$d"/ksuinit "$out/ksuinit/$(basename "$d")" 2>/dev/null || true
           done
 
+          # Flat release assets: the payload names repeat across architectures,
+          # so they are prefixed instead of kept in per-arch directories.
+          for d in artifacts/builtzygisk-*; do
+            [ -d "$d" ] || continue
+            arch="${d##*builtzygisk-}"
+            # an older builder nested the files under an arch directory
+            [ -d "$d/$arch" ] && d="$d/$arch"
+            for f in "$d"/*; do
+              [ -f "$f" ] || continue
+              cp -f "$f" "$out/zygisk-${arch}-$(basename "$f")"
+            done
+          done
+
           find "$out" -type f | sort
           test -n "$(ls -A "$out")"
           echo "release files collected in ${out}"
+
+  # A tag push publishes a real release with every artifact attached: the kernel
+  # modules, ksud, ksuinit and the manager APK. Without this the release only
+  # existed on the runner host.
+  publish-release:
+    needs: [assemble]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload the release assets
+        if: github.ref_type == 'tag'
+        env:
+          # Dedicated token with write:repository. The built-in GITHUB_TOKEN is
+          # only a fallback: it may lack release permissions on this instance.
+          API_TOKEN: ${{ secrets.RELEASE_API_TOKEN || vars.RELEASE_API_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          # This job has no checkout: it only reads the files the assemble job
+          # wrote, so common.sh is not available and not needed here.
+          site="${FORGEJO_PUBLIC_URL:-https://git.zako.shirkneko.top:20004}"
+          api="${site}/api/v1/repos/${GITHUB_REPOSITORY}"
+          auth="Authorization: token ${API_TOKEN}"
+          tag="${GITHUB_REF_NAME}"
+          dir="/ci/runs/${GITHUB_RUN_ID}/release"
+          test -d "$dir"
+          echo "publishing ${tag} from ${dir}"
+
+          net() {
+            curl -sS --retry 5 --retry-all-errors --retry-delay 2 \
+              --connect-timeout 10 --max-time 300 "$@"
+          }
+          net_once() {
+            curl -sS --retry 5 --retry-connrefused --retry-delay 2 \
+              --connect-timeout 10 --max-time 300 "$@"
+          }
+
+          release="$api/releases/tags/$tag"
+          status="$(net -o /tmp/release.json -w '%{http_code}' -H "$auth" "$release" || true)"
+          if [ "$status" = "200" ]; then
+            id="$(jq -r '.id' /tmp/release.json)"
+            echo "existing release id=${id}"
+          else
+            payload="$(jq -nc --arg tag "$tag" --arg sha "$GITHUB_SHA" \
+              '{tag_name: $tag, target_commitish: $sha, name: $tag, prerelease: false,
+                body: "Release assets built by CI."}')"
+            net_once -X POST -H "$auth" -H 'Content-Type: application/json' \
+              -d "$payload" "$api/releases" >/dev/null
+            net -H "$auth" "$release" -o /tmp/release.json
+            id="$(jq -r '.id' /tmp/release.json)"
+            echo "created release id=${id}"
+          fi
+          test -n "$id" && [ "$id" != "null" ]
+
+          # Re-runs replace the previous assets instead of piling up duplicates.
+          for asset_id in $(jq -r '.assets[].id' /tmp/release.json); do
+            net -X DELETE -H "$auth" "$api/releases/${id}/assets/$asset_id" >/dev/null
+          done
+
+          # Flat asset names: lkm-<kmi>_kernelsu.ko, ksud-<triple>,
+          # ksuinit-<arch> and the manager APK are already unique.
+          find "$dir" -type f | sort | while read -r f; do
+            name="$(basename "$f")"
+            net_once -f -X POST -H "$auth" -F "attachment=@${f}" \
+              "$api/releases/${id}/assets?name=${name}" >/dev/null
+            echo "uploaded ${name}"
+          done
+          echo "release ${tag} updated"
+
+  # The runner has no artifact service, so a build only lives in the /ci volume
+  # where nobody can reach it. This copies it to the host directory the compose
+  # stack mounts at /out and keeps the five most recent builds.
+  archive:
+    needs: [publish-release]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export the build to the out directory
+        run: |
+          set -eu
+          # This job has no checkout: it only reads what the other jobs wrote.
+          CI_ARTIFACT_ROOT="/ci/runs/${GITHUB_RUN_ID:-local}"
+          if [ ! -d /out ]; then
+            echo "no /out mount on this runner, skipping the archive"
+            exit 0
+          fi
+          # Run numbers are counted per workflow, so ci and release would collide
+          # on the same number; the workflow name keeps the folders apart.
+          workflow="$(printf '%s' "${GITHUB_WORKFLOW:-run}" | tr ' ' '-')"
+          dest="/out/${workflow}-${GITHUB_RUN_NUMBER:-$GITHUB_RUN_ID}"
+          rm -rf "$dest"
+          mkdir -p "$dest"
+          cp -a "$CI_ARTIFACT_ROOT"/. "$dest"/
+          # the R8 mapping is not something to keep
+          rm -rf "$dest/Manager-mappings"
+          # keep the five most recent builds, newest first by mtime
+          ls -1t /out | tail -n +6 | while read -r old; do
+            rm -rf "/out/$old"
+          done
+          echo "archived to ${dest}"
+          du -sh "$dest"
+          echo "kept: $(ls -1t /out | tr '\n' ' ')"

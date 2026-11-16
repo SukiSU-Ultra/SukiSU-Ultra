@@ -269,23 +269,26 @@ jobs:
           # The kpm tools are release assets of the mirrored KernelPatch repo;
           # raw.githubusercontent.com is not reachable from this network.
           KPM_TOOLS_BASE_URL: https://git.zako.shirkneko.top:20004/shirkneko/SukiSU_KernelPatch_patch/releases/download/0.14.0
+          PR_BUILD_FLAG: ${{ inputs.keystore != '' && '1' || '' }}
         run: |
           set -eu
           # Not ./gradlew: the wrapper downloads its distribution from
           # services.gradle.org, which redirects to github.com. The image ships
           # the same Gradle release at /opt/gradle.
-          gradle clean
-          # downloadKpmTools fetches these from raw.githubusercontent.com and
-          # skips the download when both files are already in place.
+          #
+          # No `clean`: every job starts from a fresh checkout, so build/ is empty
+          # anyway and cleaning only threw away what --build-cache could reuse.
+          # The cache lives in GRADLE_USER_HOME (/ci/tools/gradle), which persists.
           kpm=app/build/generated/kpmTools
-          mkdir -p "$kpm/jniLibs/arm64-v8a" "$kpm/assets/kpm"
-          cp -f /opt/kpm-tools/kptools-android "$kpm/jniLibs/arm64-v8a/libkptools.so"
-          cp -f /opt/kpm-tools/kpimg "$kpm/assets/kpm/kpimg"
-          if [ -n "${{ inputs.keystore }}" ]; then
-            gradle assembleRelease -PIS_PR_BUILD=true
-          else
-            gradle assembleRelease
+          if [ ! -s "$kpm/assets/kpm/kpimg" ] || [ ! -s "$kpm/jniLibs/arm64-v8a/libkptools.so" ]; then
+            # downloadKpmTools would fetch these from raw.githubusercontent.com;
+            # the image already carries them, so only seed when missing.
+            mkdir -p "$kpm/jniLibs/arm64-v8a" "$kpm/assets/kpm"
+            cp -f /opt/kpm-tools/kptools-android "$kpm/jniLibs/arm64-v8a/libkptools.so"
+            cp -f /opt/kpm-tools/kpimg "$kpm/assets/kpm/kpimg"
           fi
+          gradle --build-cache -Dorg.gradle.parallel=true \
+            assembleRelease ${PR_BUILD_FLAG:+-PIS_PR_BUILD=true}
 
       # --------------------------------------------------------
       # Upload un-repacked APK

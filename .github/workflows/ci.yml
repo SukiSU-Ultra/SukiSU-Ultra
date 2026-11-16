@@ -1,0 +1,233 @@
+name: CI
+
+# Push and pull-request pipeline. release.yml handles tags; this one covers the
+# everyday case so a commit that touches the manager, the kernel module or ksud
+# actually builds something.
+#
+# Forgejo ignores `if:` on a job that uses a reusable workflow, so the stages
+# cannot be skipped by a condition. `generate-key` therefore always runs and only
+# produces a key for pull requests; the rest of the chain relies on step-level
+# conditions inside each called workflow.
+on:
+  push:
+    branches: [ "main", "dev" ]
+    paths:
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/build-lkm.yml'
+      - '.github/workflows/ddk-lkm.yml'
+      - '.github/workflows/ksud.yml'
+      - '.github/workflows/ksuinit.yml'
+      - '.github/workflows/manager.yml'
+      - '.github/workflows/publish.yml'
+      - '.github/ci/**'
+      - '.github/scripts/ci/**'
+      - '.github/scripts/setup-rust-build.sh'
+      - '.github/riscv64-cargo.toml'
+      - 'scripts/upload-telegram.sh'
+      - 'repack_apk.py'
+      - 'split_apk_by_arch.py'
+      - 'manager/**'
+      - 'kernel/**'
+      - 'userspace/**'
+      - 'external/BuiltZygisk/**'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+  pull_request:
+    branches: [ "main", "dev" ]
+    paths:
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/build-lkm.yml'
+      - '.github/workflows/ddk-lkm.yml'
+      - '.github/workflows/ksud.yml'
+      - '.github/workflows/ksuinit.yml'
+      - '.github/workflows/manager.yml'
+      - '.github/workflows/publish.yml'
+      - '.github/ci/**'
+      - '.github/scripts/ci/**'
+      - '.github/scripts/setup-rust-build.sh'
+      - '.github/riscv64-cargo.toml'
+      - 'scripts/upload-telegram.sh'
+      - 'repack_apk.py'
+      - 'split_apk_by_arch.py'
+      - 'manager/**'
+      - 'kernel/**'
+      - 'userspace/**'
+      - 'external/BuiltZygisk/**'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+  workflow_dispatch:
+
+jobs:
+
+  # Pull requests are signed with a throwaway key so a PR can never produce an
+  # APK that looks like a release build. The job runs on every event (an `if:`
+  # here would make the whole reusable chain un-runnable); the steps are gated.
+  generate-key:
+    runs-on: ubuntu-latest
+    outputs:
+      expected_size: ${{ steps.extract.outputs.expected_size }}
+      expected_hash: ${{ steps.extract.outputs.expected_hash }}
+      keystore: ${{ steps.gen.outputs.keystore }}
+      keystore_password: ${{ steps.gen.outputs.keystore_password }}
+      key_password: ${{ steps.gen.outputs.key_password }}
+    steps:
+      - name: Generate temporary keystore
+        if: github.event_name == 'pull_request'
+        id: gen
+        run: |
+          set -eu
+          KEYSTORE_PASSWORD=$(openssl rand -hex 32)
+          KEY_PASSWORD=$(openssl rand -hex 32)
+
+          echo "keystore_password=$KEYSTORE_PASSWORD" >> "$GITHUB_OUTPUT"
+          echo "key_password=$KEY_PASSWORD" >> "$GITHUB_OUTPUT"
+
+          keytool -genkeypair \
+            -alias pr-key \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEY_PASSWORD" \
+            -dname "CN=KernelSU PR Build" \
+            -storetype JKS \
+            -keystore pr-key.jks
+
+          echo "keystore=$(base64 -w 0 pr-key.jks)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract certificate hash and size
+        if: github.event_name == 'pull_request'
+        id: extract
+        env:
+          STORE_PASS: ${{ steps.gen.outputs.keystore_password }}
+        run: |
+          set -eu
+          keytool -exportcert \
+            -alias pr-key \
+            -keystore pr-key.jks \
+            -storepass "$STORE_PASS" \
+            -file pr-cert.der
+
+          SIZE_DEC=$(stat -c%s pr-cert.der)
+          SIZE_HEX=$(printf '0x%04x' "$SIZE_DEC")
+          echo "expected_size=$SIZE_HEX" >> "$GITHUB_OUTPUT"
+
+          HASH=$(sha256sum pr-cert.der | awk '{print $1}')
+          echo "expected_hash=$HASH" >> "$GITHUB_OUTPUT"
+
+          echo "Certificate size: $SIZE_HEX ($SIZE_DEC bytes)"
+          echo "Certificate hash: $HASH"
+
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_code: ${{ steps.version.outputs.version_code }}
+    steps:
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Calculate version code
+        id: version
+        run: |
+          set -eu
+          COMMIT_COUNT=$(git rev-list --count refs/remotes/origin/main)
+          VERSION_CODE=$((30000 + COMMIT_COUNT + 996))
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "KernelSU version code: $VERSION_CODE (main commits: $COMMIT_COUNT)"
+
+  build-lkm:
+    needs: [generate-key, determine-version]
+    uses: ./.github/workflows/build-lkm.yml
+    with:
+      expected_size: ${{ needs.generate-key.outputs.expected_size || '' }}
+      expected_hash: ${{ needs.generate-key.outputs.expected_hash || '' }}
+      version_code: ${{ needs.determine-version.outputs.version_code }}
+      release_build: false
+    secrets: inherit
+
+  build-ksuinit:
+    uses: ./.github/workflows/ksuinit.yml
+
+  build-builtzygisk:
+    uses: ./.github/workflows/builtzygisk.yml
+
+  build-ksud:
+    needs: [build-lkm, build-ksuinit, build-builtzygisk]
+    uses: ./.github/workflows/ksud.yml
+    with:
+      pack_lkm: true
+      pack_ksuinit: true
+      pack_builtzygisk: true
+
+  manager:
+    needs: [generate-key, build-ksud]
+    uses: ./.github/workflows/manager.yml
+    with:
+      artifacts_run: ''
+      keystore: ${{ needs.generate-key.outputs.keystore }}
+      keystore_password: ${{ needs.generate-key.outputs.keystore_password }}
+      key_password: ${{ needs.generate-key.outputs.key_password }}
+      release_build: false
+    secrets: inherit
+
+  # Rolling release + Telegram. Its steps are gated, so on a pull request this
+  # job only downloads the artifacts and exits.
+  publish:
+    needs: manager
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+
+  # The runner has no artifact service, so a build only lives in the /ci volume
+  # where nobody can reach it. This copies it to the host directory the compose
+  # stack mounts at /out and keeps the five most recent builds.
+  archive:
+    needs: [publish]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export the build to the out directory
+        run: |
+          set -eu
+          # This job has no checkout: it only reads what the other jobs wrote.
+          CI_ARTIFACT_ROOT="/ci/runs/${GITHUB_RUN_ID:-local}"
+          if [ ! -d /out ]; then
+            echo "no /out mount on this runner, skipping the archive"
+            exit 0
+          fi
+          # Run numbers are counted per workflow, so ci and release would collide
+          # on the same number; the workflow name keeps the folders apart.
+          workflow="$(printf '%s' "${GITHUB_WORKFLOW:-run}" | tr ' ' '-')"
+          dest="/out/${workflow}-${GITHUB_RUN_NUMBER:-$GITHUB_RUN_ID}"
+          rm -rf "$dest"
+          mkdir -p "$dest"
+          cp -a "$CI_ARTIFACT_ROOT"/. "$dest"/
+          # the R8 mapping is not something to keep
+          rm -rf "$dest/Manager-mappings"
+          # keep the five most recent builds, newest first by mtime
+          ls -1t /out | tail -n +6 | while read -r old; do
+            rm -rf "/out/$old"
+          done
+          echo "archived to ${dest}"
+          du -sh "$dest"
+          echo "kept: $(ls -1t /out | tr '\n' ' ')"

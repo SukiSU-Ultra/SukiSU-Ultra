@@ -47,11 +47,15 @@ extern "C" fn sigsys_handler(
             SIGSYS_OCCURRED.with(|occurred| occurred.set(true));
         }
 
-        #[cfg(not(target_arch = "riscv64"))]
+        #[cfg(any(target_arch = "aarch64", target_arch = "arm", target_arch = "x86_64"))]
         let ucontext = ctx.cast::<libc::ucontext_t>();
         #[cfg(target_arch = "aarch64")]
         {
             (*ucontext).uc_mcontext.regs[0] = (-libc::EPERM) as u64;
+        }
+        #[cfg(target_arch = "arm")]
+        {
+            (*ucontext).uc_mcontext.arm_r0 = (-libc::EPERM) as libc::c_ulong;
         }
         #[cfg(target_arch = "x86_64")]
         {

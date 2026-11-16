@@ -72,6 +72,7 @@ jobs:
           ci_artifact_get Manager apks/Manager
 
       - name: Prepare signing inputs
+        if: github.event_name != 'pull_request'
         env:
           PROD_KEYSTORE: ${{ vars.KEYSTORE || secrets.KEYSTORE }}
           PROD_KEY_ALIAS: ${{ vars.KEY_ALIAS || secrets.KEY_ALIAS }}
@@ -87,6 +88,7 @@ jobs:
           echo "SIGN_KEY_PASSWORD=$PROD_KEY_PASSWORD" >> "$GITHUB_ENV"
 
       - name: Split and sign by architecture
+        if: github.event_name != 'pull_request'
         run: |
           set -eu
           apk="$(find apks/Manager -type f -name '*.apk' | head -n 1)"
@@ -122,48 +124,79 @@ jobs:
       - name: Publish the manager-ci release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
-          # A PAT is only needed if the built-in token cannot create releases.
-          API_TOKEN: ${{ vars.RELEASE_API_TOKEN || secrets.GITHUB_TOKEN }}
+          # Dedicated token with write:repository. The built-in GITHUB_TOKEN is
+          # only a fallback: it may lack release permissions on this instance.
+          API_TOKEN: ${{ secrets.RELEASE_API_TOKEN || vars.RELEASE_API_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -eu
-          api="${GITHUB_SERVER_URL}/api/v1/repos/${GITHUB_REPOSITORY}"
+          # GITHUB_SERVER_URL is the EasyTier address (http://100.0.0.11:3000),
+          # which a job container cannot reach -- the same reason every checkout
+          # uses the public endpoint.
+          site="${FORGEJO_PUBLIC_URL:-https://git.zako.shirkneko.top:20004}"
+          api="${site}/api/v1/repos/${GITHUB_REPOSITORY}"
           auth="Authorization: token ${API_TOKEN}"
           tag=manager-ci
+          echo "api=${api} token_len=${#API_TOKEN}"
+
+          # The public endpoint goes through a tunnel that occasionally drops a
+          # connection ("empty reply from server", curl 52). Idempotent calls retry
+          # on any error; calls that create something only retry a refused
+          # connection, and the caller re-reads the state afterwards.
+          net() {
+            curl -sS --retry 5 --retry-all-errors --retry-delay 2 \
+              --connect-timeout 10 --max-time 120 "$@"
+          }
+          net_once() {
+            curl -sS --retry 5 --retry-connrefused --retry-delay 2 \
+              --connect-timeout 10 --max-time 120 "$@"
+          }
 
           apk="$(find apks/split -type f -name '*.apk' | head -n 1)"
-          # SukiSU_Nova_manager-ci_30019-arm64-v8a-release.apk -> 30019
+          # SukiSU_Nova_<sha>_35001-arm64-v8a-release.apk -> 35001
           base="$(basename "$apk")"
           code="${base##*_}"
           code="${code%%-*}"
-          test -n "$code"
+          # The app parses the version out of the release title, so a name that
+          # does not carry one must fail here rather than publish a broken release.
+          case "$code" in
+            '' | *[!0-9]*) echo "cannot parse the version code from ${base}" >&2; exit 1 ;;
+          esac
 
           release="$api/releases/tags/$tag"
-          if curl -fsS -H "$auth" "$release" >/dev/null 2>&1; then
-            id="$(curl -fsS -H "$auth" "$release" | jq -r '.id')"
+          status="$(curl -sS --connect-timeout 10 --max-time 60 -o /tmp/release.json \
+            -w '%{http_code}' -H "$auth" "$release" || true)"
+          echo "existing release: HTTP ${status}"
+          if [ "$status" = "200" ]; then
+            id="$(jq -r '.id' /tmp/release.json)"
           else
             payload="$(jq -nc --arg sha "$GITHUB_SHA" --arg name "Manager CI (${code})" \
               '{tag_name: "manager-ci", target_commitish: $sha, name: $name, prerelease: true,
                 body: "Rolling CI build from main. Experimental; may be unstable."}')"
-            curl -fsS -X POST -H "$auth" -H 'Content-Type: application/json' \
-              -d "$payload" "$api/releases" >/dev/null
-            id="$(curl -fsS -H "$auth" "$release" | jq -r '.id')"
+            net_once -X POST -H "$auth" -H 'Content-Type: application/json' \
+              -d "$payload" "$api/releases" -o /tmp/release.json \
+              -w 'create: HTTP %{http_code}\n' || true
+            # A lost response can leave the release behind anyway; read it back.
+            curl -sS --connect-timeout 10 --max-time 60 -H "$auth" "$release" \
+              -o /tmp/release.json
+            id="$(jq -r '.id' /tmp/release.json)"
           fi
           test -n "$id" && [ "$id" != "null" ]
 
           # Replace the assets of the previous build; the names carry the version.
-          for asset_id in $(curl -fsS -H "$auth" "$release" | jq -r '.assets[].id'); do
-            curl -fsS -X DELETE -H "$auth" "$api/releases/assets/$asset_id" >/dev/null
+          for asset_id in $(jq -r '.assets[].id' /tmp/release.json); do
+            # Forgejo 17 nests the asset under its release; /releases/assets/{id} is 404.
+            net -f -X DELETE -H "$auth" "$api/releases/${id}/assets/$asset_id" >/dev/null
           done
           for f in apks/split/*.apk; do
             name="$(basename "$f")"
-            curl -fsS -X POST -H "$auth" \
+            net_once -f -X POST -H "$auth" \
               -F "attachment=@${f}" "$api/releases/${id}/assets?name=${name}" >/dev/null
             echo "uploaded ${name}"
           done
 
           # Keep the title in step with the build so the app can parse the version.
           payload="$(jq -nc --arg name "Manager CI (${code})" '{name: $name, prerelease: true}')"
-          curl -fsS -X PATCH -H "$auth" -H 'Content-Type: application/json' \
+          net -f -X PATCH -H "$auth" -H 'Content-Type: application/json' \
             -d "$payload" "$api/releases/${id}" >/dev/null
           echo "release ${tag} updated"
 
@@ -189,7 +222,9 @@ jobs:
           CHAT_ID: ${{ vars.CHAT_ID || secrets.CHAT_ID }}
           BOT_TOKEN: ${{ vars.BOT_TOKEN || secrets.BOT_TOKEN }}
           GITHUB_EVENT: ${{ toJson(github.event) }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # The public endpoint again: github.server_url points at the tunnel address,
+          # so the link in the Telegram message would not open for anyone.
+          RUN_URL: https://git.zako.shirkneko.top:20004/${{ github.repository }}/actions/runs/${{ github.run_id }}
           BRANCH: ${{ github.ref_name }}
         run: |
           set -eu
@@ -199,4 +234,30 @@ jobs:
           export MESSAGE_THREAD_ID="${{ inputs.release_upload && (vars.MESSAGE_RELEASES_THREAD_ID || secrets.MESSAGE_RELEASES_THREAD_ID) || vars.MESSAGE_THREAD_ID || secrets.MESSAGE_THREAD_ID }}"
           mapfile -d '' APKS < <(find ./apks/split -type f -name '*.apk' -print0 | sort -z)
           test "${#APKS[@]}" -gt 0
+
+          # Deleting and re-creating a tag pushes it again and re-runs the whole
+          # release, so the same build must not reach the topic twice.
+          #
+          # The identity of a build is the topic, the ref, the commit AND the bytes
+          # of the APK:
+          #   - the version code is derived from the commit count, so it goes
+          #     backwards on a revert and must not be the key
+          #   - the ref keeps dev, main, tags and pull requests in separate slots
+          #   - the hash means a rebuild of the same commit (different signer,
+          #     different toolchain, changed files in the APK) still uploads
+          code="$(basename "${APKS[0]}" | sed -E 's/.*_([0-9]+)-[a-z0-9_-]+-release\.apk$/\1/')"
+          sha="$(git rev-parse --short=8 HEAD 2>/dev/null || printf '%s' "${GITHUB_SHA:-unknown}" | cut -c1-8)"
+          ref="$(printf '%s' "${GITHUB_REF_NAME:-${GITHUB_REF:-unknown}}" | tr '/' '-')"
+          apk_hash="$(sha256sum "${APKS[0]}" | cut -c1-16)"
+          topic="${MESSAGE_THREAD_ID:-default}"
+          marker="/ci/state/telegram-${topic}-${ref}-${sha}-${apk_hash}.sent"
+          mkdir -p "$(dirname "$marker")"
+          # markers are only useful while the commit is still recent
+          find /ci/state -type f -mtime +30 -delete 2>/dev/null || true
+          if [ -f "$marker" ]; then
+            echo "build ${ref}@${sha} apk ${apk_hash} (version ${code}) was already uploaded to topic ${topic} ($(cat "$marker")), skipping"
+            exit 0
+          fi
+
           bash scripts/upload-telegram.sh "${APKS[@]}"
+          date -u +%FT%TZ >"$marker"

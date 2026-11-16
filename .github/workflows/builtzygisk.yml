@@ -1,0 +1,154 @@
+name: Build BuiltZygisk
+
+# Builds the NyaZygisk payload that ksud embeds as its built-in Zygisk.
+#
+# The sources are the external/BuiltZygisk submodule, which itself has four
+# submodules on github.com. All five repositories are mirrored on this instance
+# and the URLs are rewritten below, because a job container cannot reach
+# github.com. Everything the build needs (SDK 37, NDK 27.2, CMake 4.1.2,
+# cargo-ndk) is baked into the sukisu-ci image.
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      os:
+        required: false
+        type: string
+        default: ubuntu-latest
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    env:
+      GRADLE_USER_HOME: /ci/tools/gradle
+      CARGO_HOME: /ci/tools/cargo
+      RUSTUP_HOME: /usr/local/rustup
+      # zygiskd is built with -Z, so cargo must run on nightly; this toolchain
+      # also carries rust-src in the image.
+      RUSTUP_TOOLCHAIN: nightly-2026-09-23
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_NDK_HOME: /opt/android-sdk/ndk/27.2.12479018
+      # Cap parallelism: several job containers run at once.
+      MAKEFLAGS: "-j6"
+      CARGO_BUILD_JOBS: "6"
+    steps:
+      - name: Checkout
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          remote="https://git.zako.shirkneko.top:20004"
+          mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
+          mkdir -p "$(dirname "$mirror")"
+          if [ ! -d "$mirror" ]; then
+            git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
+              clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+          elif command -v flock >/dev/null 2>&1; then
+            (
+              flock 9
+              git --git-dir="$mirror" fetch -q --prune origin \
+                "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+            ) 9>"${mirror}.lock"
+          else
+            git --git-dir="$mirror" fetch -q --prune origin \
+              "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
+          fi
+          git clone -q --shared --no-checkout "$mirror" .
+          git checkout -q "${GITHUB_SHA}"
+
+      - name: Fetch the submodules from the mirrors
+        run: |
+          set -eu
+          base="https://git.zako.shirkneko.top:20004/shirkneko"
+
+          # The umbrella submodule first, then its own four dependencies.
+          git submodule set-url external/BuiltZygisk "$base/BuiltZygisk.git"
+          git submodule sync -- external/BuiltZygisk
+          git submodule update --init external/BuiltZygisk
+
+          cd external/BuiltZygisk
+          # Not --recursive: LSPlt carries a docs-only submodule we never build.
+          git submodule set-url loader/src/external/lsplt "$base/LSPlt.git"
+          git submodule set-url loader/src/external/dobby "$base/Dobby.git"
+          git submodule set-url loader/src/external/rv64hook "$base/riscv64-inline-hook.git"
+          git submodule set-url loader/src/external/bhook "$base/bhook.git"
+          git submodule sync
+          git submodule update --init
+
+      - name: Check toolchain
+        run: |
+          set -eu
+          gradle --version | head -3
+          cargo ndk --version || true
+          test -d "${ANDROID_NDK_HOME}"
+          test -d /opt/android-sdk/cmake/4.1.2
+
+      - name: Build BuiltZygisk
+        working-directory: external/BuiltZygisk
+        run: |
+          set -eu
+          # --build-cache reuses the CMake/Rust task outputs from earlier runs;
+          # the cache and the dependency cache both live in GRADLE_USER_HOME
+          # (/ci/tools/gradle), which the runner keeps on a persistent volume.
+          gradle --build-cache zipRelease \
+            -Porg.gradle.parallel=true \
+            -Dorg.gradle.jvmargs=-Xmx2048m
+
+      - name: Organize artifacts
+        working-directory: external/BuiltZygisk
+        run: |
+          set -eu
+          zip="$(find module/build/outputs/release -type f -name 'NyaZygisk-v*-release.zip' | head -n 1)"
+          test -n "$zip"
+          rm -rf extracted "$PWD"/../builtzygisk-*
+          mkdir -p extracted
+          unzip -q "$zip" -d extracted
+
+          out="${GITHUB_WORKSPACE}/builtzygisk"
+          for arch in aarch64 arm x86_64 riscv64; do
+            mkdir -p "$out/$arch"
+            # Shared by every architecture: the SELinux rules and the module.prop.
+            cp module/src/sepolicy.rule "$out/$arch/zygisk-sepolicy.rule"
+            cp extracted/module.prop "$out/$arch/zygisk-module.prop"
+          done
+
+          # The 64-bit packages also carry the 32-bit loader for a 32-bit zygote.
+          copy() {
+            [ -f "extracted/$1" ] || return 0
+            cp "extracted/$1" "$out/$2/$3"
+          }
+          copy bin/arm64-v8a/zygiskd            aarch64 zygiskd
+          copy lib/arm64-v8a/libzygisk_ptrace.so aarch64 zygisk-ptrace
+          copy lib/arm64-v8a/libzygisk.so        aarch64 libzygisk.so
+          copy lib/armeabi-v7a/libzygisk.so      aarch64 libzygisk32.so
+
+          copy bin/armeabi-v7a/zygiskd          arm zygiskd
+          copy lib/armeabi-v7a/libzygisk_ptrace.so arm zygisk-ptrace
+          copy lib/armeabi-v7a/libzygisk.so      arm libzygisk.so
+
+          copy bin/x86_64/zygiskd               x86_64 zygiskd
+          copy lib/x86_64/libzygisk_ptrace.so    x86_64 zygisk-ptrace
+          copy lib/x86_64/libzygisk.so           x86_64 libzygisk.so
+          copy lib/x86/libzygisk.so              x86_64 libzygisk32.so
+
+          copy bin/riscv64/zygiskd              riscv64 zygiskd
+          copy lib/riscv64/libzygisk_ptrace.so    riscv64 zygisk-ptrace
+          copy lib/riscv64/libzygisk.so           riscv64 libzygisk.so
+
+          for arch in aarch64 arm x86_64 riscv64; do
+            test -f "$out/$arch/zygiskd"
+            ls -l "$out/$arch"
+          done
+
+      - name: Upload the zygisk payloads
+        run: |
+          set -eu
+          . .github/scripts/ci/common.sh
+          for arch in aarch64 arm x86_64 riscv64; do
+            # Pass the files, not the directory: ci_artifact_put would copy the
+            # arch directory itself, so the artifact became
+            # builtzygisk-<arch>/<arch>/... and ksud then embedded the payload
+            # under the keys aarch64/zygiskd etc, which its own lookups never find.
+            ci_artifact_put "builtzygisk-$arch" "${GITHUB_WORKSPACE}/builtzygisk/$arch"/*
+          done

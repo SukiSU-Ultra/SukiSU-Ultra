@@ -13,6 +13,10 @@ on:
       - '.github/workflows/clippy.yml'
       - 'userspace/**'
       - '.github/scripts/ci/**'
+      - '.github/scripts/setup-rust-build.sh'
+      - '.github/riscv64-cargo.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
   pull_request:
     branches:
       - main
@@ -21,6 +25,10 @@ on:
       - '.github/workflows/clippy.yml'
       - 'userspace/**'
       - '.github/scripts/ci/**'
+      - '.github/scripts/setup-rust-build.sh'
+      - '.github/riscv64-cargo.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
 
 env:
   RUSTFLAGS: '-Dwarnings'
@@ -71,7 +79,9 @@ jobs:
       - name: Run clippy
         run: |
           set -eu
-          source .github/scripts/setup-rust-build.sh aarch64-linux-android 26
-          source .github/scripts/setup-rust-build.sh x86_64-linux-android 26
-          cargo clippy --target aarch64-linux-android --release
-          cargo clippy --target x86_64-linux-android --release
+          # Same targets ksud is built for, except riscv64: that one needs
+          # nightly with -Z build-std, which clippy does not support cleanly.
+          for triple in aarch64-linux-android armv7-linux-androideabi x86_64-linux-android; do
+            source .github/scripts/setup-rust-build.sh "$triple" 26
+            cargo clippy --target "$triple" --release
+          done

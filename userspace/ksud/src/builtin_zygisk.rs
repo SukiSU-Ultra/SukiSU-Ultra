@@ -1559,6 +1559,13 @@ pub fn bootstrap() -> Result<()> {
     }
 
     info!("Bootstrapping built-in Zygisk");
+    // The policy rules are what let the monitor bind its control socket under
+    // /data/system and trace the zygote. late_load applies them on boot, but a
+    // runtime `zygisk switch builtin` skipped this, so the monitor was denied and
+    // died before its socket appeared.
+    if let Err(e) = apply_sepolicy() {
+        warn!("apply built-in Zygisk sepolicy failed: {e}");
+    }
     let dir = Path::new(BUILTIN_ZYGISK_DIR);
     ensure_dir_exists(dir)?;
     // Deliberately not wiped: on a late load or soft reboot a monitor from the previous
@@ -1579,12 +1586,22 @@ pub fn bootstrap() -> Result<()> {
     info!("Starting built-in Zygisk monitor: {}", tracer_bin.display());
     let mut cmd = Command::new(&tracer_bin);
     // Detached from our stdio, or a caller waiting on a pipe (late-load from a shell)
-    // would block for as long as the monitor lives.
-    cmd.arg("monitor")
-        .current_dir(dir)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
+    // would block for as long as the monitor lives. Its own output goes to a file:
+    // that is the only place a start-up failure is visible, and discarding it made
+    // "the built-in monitor did not start" impossible to diagnose on the device.
+    cmd.arg("monitor").current_dir(dir).stdin(Stdio::null());
+    if let Ok(log) = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(dir.join("monitor.log"))
+    {
+        let err = log.try_clone().ok().map_or_else(Stdio::null, Stdio::from);
+        cmd.stdout(Stdio::from(log));
+        cmd.stderr(err);
+    } else {
+        cmd.stdout(Stdio::null());
+        cmd.stderr(Stdio::null());
+    }
     #[cfg(target_os = "android")]
     unsafe {
         use std::os::unix::process::CommandExt;

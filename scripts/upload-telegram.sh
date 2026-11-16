@@ -72,6 +72,9 @@ common_args=(
   --silent --show-error --fail-with-body
   --retry 2 --retry-delay 2 --retry-connrefused
   --connect-timeout 30 --max-time 1800
+  # Over the tunnel a large multipart body sometimes loses TLS mid-upload
+  # ("unexpected eof while reading"); HTTP/1.1 is calmer there.
+  --http1.1
   -H "Expect:"
   -o "$response"
   -F "chat_id=${CHAT_ID}"
@@ -88,6 +91,24 @@ run_curl() {
     jq . "$response" >&2 2>/dev/null || cat "$response" >&2
     return 1
   fi
+}
+
+# Every attempt needs a fresh curl process: a multipart upload consumes the local
+# file streams, so an in-process retry (--retry-all-errors) would resend the
+# attach:// references without their data and Telegram answers 400.
+send_with_retry() {
+  local attempt=1 limit=3
+  while true; do
+    if run_curl "$@"; then
+      return 0
+    fi
+    if (( attempt >= limit )); then
+      return 1
+    fi
+    echo "[!] upload attempt ${attempt}/${limit} failed, retrying" >&2
+    sleep $(( attempt * 5 ))
+    attempt=$(( attempt + 1 ))
+  done
 }
 
 if (( $# == 1 )); then
@@ -121,10 +142,28 @@ else
   media="$(printf '%s\n' "${json_items[@]}" | jq -cs '.')"
 
   echo "[+] Uploading $# APKs in one Telegram media group"
-  run_curl \
+  if ! send_with_retry \
     -F "media=${media}" \
     "${upload_args[@]}" \
-    "${api}/sendMediaGroup"
+    "${api}/sendMediaGroup"; then
+    # One request carrying every APK is the fragile part; fall back to a message
+    # per file so a flaky connection still delivers them.
+    echo "[!] media group upload failed, sending the APKs one by one" >&2
+    first=1
+    for file in "$@"; do
+      caption_arg="$caption"
+      if (( first )); then
+        first=0
+      else
+        caption_arg=""
+      fi
+      send_with_retry \
+        -F "document=@${file};type=application/vnd.android.package-archive" \
+        -F "caption=${caption_arg}" \
+        -F "parse_mode=HTML" \
+        "${api}/sendDocument"
+    done
+  fi
 fi
 
 if ! jq -e '.ok == true' "$response" >/dev/null 2>&1; then

@@ -44,8 +44,6 @@ jobs:
     env:
       CARGO_HOME: /ci/tools/cargo
       RUSTUP_HOME: /usr/local/rustup
-      # Same reason as MAKEFLAGS in ddk-lkm: cap per-job parallelism.
-      CARGO_BUILD_JOBS: "6"
     steps:
       - name: Checkout
         env:
@@ -106,18 +104,17 @@ jobs:
         if: ${{ inputs.pack_builtzygisk }}
         run: |
           set -eu
-          if [ -d "artifacts/builtzygisk-aarch64" ]; then
-            cp -r artifacts/builtzygisk-aarch64/* ./userspace/ksud/bin/aarch64/
-          fi
-          if [ -d "artifacts/builtzygisk-arm" ]; then
-            cp -r artifacts/builtzygisk-arm/* ./userspace/ksud/bin/arm/
-          fi
-          if [ -d "artifacts/builtzygisk-x86_64" ]; then
-            cp -r artifacts/builtzygisk-x86_64/* ./userspace/ksud/bin/x86_64/
-          fi
-          if [ -d "artifacts/builtzygisk-riscv64" ]; then
-            cp -r artifacts/builtzygisk-riscv64/* ./userspace/ksud/bin/riscv64/
-          fi
+          # Accept both layouts: files directly in the artifact, or wrapped in a
+          # directory named after the arch (what an older builder produced). A
+          # wrapped copy ends up as bin/<arch>/<arch>/zygiskd, and rust-embed then
+          # keys the payload as <arch>/zygiskd, which ksud never looks up.
+          for arch in aarch64 arm x86_64 riscv64; do
+            src="artifacts/builtzygisk-$arch"
+            [ -d "$src" ] || continue
+            [ -d "$src/$arch" ] && src="$src/$arch"
+            cp -rf "$src"/. "./userspace/ksud/bin/$arch/"
+            echo "packed $arch: $(ls "$PWD/userspace/ksud/bin/$arch" | tr '\n' ' ')"
+          done
 
       - name: Check toolchain
         run: |
@@ -126,6 +123,14 @@ jobs:
           rustup toolchain list
           rustup target list --installed
           test -x "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+
+      - name: Pick cargo parallelism
+        run: |
+          set -eu
+          . .github/scripts/ci/parallel.sh
+          jobs=$(ci_parallel_acquire 6 "${GITHUB_RUN_ID}-${{ matrix.target }}")
+          echo "CARGO_BUILD_JOBS=$jobs" >> "$GITHUB_ENV"
+          echo "cargo -j$jobs, slots in use: $(find /ci/slots -type f | wc -l)"
 
       - name: Build ksud
         run: |
@@ -152,3 +157,10 @@ jobs:
           . .github/scripts/ci/common.sh
           ci_artifact_put "ksud-${{ matrix.target }}" \
             "target/${{ matrix.target }}/release/ksud"
+
+      - name: Release the parallelism slot
+        if: always()
+        run: |
+          set -eu
+          . .github/scripts/ci/parallel.sh
+          ci_parallel_release "${GITHUB_RUN_ID}-${{ matrix.target }}"

@@ -63,6 +63,12 @@ RUN set -eux; \
     done; \
     rustup default stable
 
+# Kept in its own layer so a change here does not invalidate the toolchain above
+# (re-downloading rustup over this tunnel is flaky). BuiltZygisk's zygiskd is a
+# Rust crate cross-compiled through cargo-ndk.
+ENV CARGO_NET_RETRY=10
+RUN cargo install cargo-ndk --locked
+
 # ---------------------------------------------------------------- Android SDK
 # One layer: the SDK and NDK are the bulk of the image.
 RUN set -eux; \
@@ -81,6 +87,8 @@ RUN set -eux; \
         "platform-tools" \
         "cmake;3.22.1" \
         "cmake;3.31.6" \
+        "cmake;4.1.2" \
+        "ndk;27.2.12479018" \
         >/dev/null; \
     rm -rf "${ANDROID_SDK_ROOT}/.temp"
 
@@ -124,6 +132,8 @@ RUN set -eux; \
         "https://github.com/KernelSU2/rustix.git"; \
     git config --system url."file:///opt/git-mirrors/kernlog.rs.git".insteadOf \
         "https://github.com/kstep/kernlog.rs"; \
+    git config --system url."file:///opt/git-mirrors/rustix-jm.git".insteadOf \
+        "https://github.com/JingMatrix/rustix"; \
     git ls-remote file:///opt/git-mirrors/libc.git HEAD >/dev/null; \
     cat /etc/gitconfig
 
