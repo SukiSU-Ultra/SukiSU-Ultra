@@ -43,7 +43,7 @@ static void add_typeattribute_raw(struct policydb *db, struct type_datum *type, 
 static bool add_typeattribute(struct policydb *db, const char *type, const char *attr);
 
 static const struct policydb *ksu_original_types_policy;
-static u32 ksu_original_types_limit;
+u32 ksu_original_types_limit __read_mostly = 0;
 static u32 ksu_original_types_generation;
 
 //////////////////////////////////////////////////////

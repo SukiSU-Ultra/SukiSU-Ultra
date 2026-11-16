@@ -77,6 +77,13 @@ static int apply_kernelsu_rules_fn(void *ptr)
 {
     struct policydb *db = (struct policydb *)ptr;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+    if (!READ_ONCE(ksu_original_types_limit)) {
+        WRITE_ONCE(ksu_original_types_limit, db->p_types.nprim);
+        pr_info("ksu_original_types_limit set to %u for < 5.10\n", db->p_types.nprim);
+    }
+#endif
+
     ksu_type(db, KERNEL_SU_DOMAIN, "domain");
     ksu_permissive(db, KERNEL_SU_DOMAIN);
     ksu_typeattribute(db, KERNEL_SU_DOMAIN, "mlstrustedsubject");
