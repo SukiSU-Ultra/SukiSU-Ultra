@@ -1,7 +1,7 @@
 # SukiSU Nova
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="SukiSU Nova logo">
 
-**简体中文** [English](./README.md) |
+**简体中文** [English](../README.md) |
 
 一个 Android 上基于内核的 root 方案，由 [`tiann/KernelSU`](https://github.com/tiann/KernelSU) 进化而来，添加了一些有趣的变更。
 
@@ -60,7 +60,7 @@
    确认刷入的内核与管理器版本匹配，并检查 `su` 是否在 PATH 中。
 
 3. **内核编译报错？**  
-   参考 [`guide/how-to-integrate.md`](guide/how-to-integrate.md)，并确认内核版本满足最低要求（4.14+）。
+   参考 [`how-to-integrate`](https://sukisu.org/zh/guide/how-to-integrate)，并确认内核版本满足最低要求（4.14+）。
 
 ## 参与翻译
 
@@ -71,7 +71,7 @@
 ## 许可证
 
 - 目录 `kernel` 下所有文件为 [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)。
-- 有动漫人物图片表情包的这些文件 `ic_launcher(?!.*alt.*).*` 图标以特别的形式授权，怡子曰曰绘制，版权明风OuO所有。矢量化图标由本项目提供。详见 [`LICENSE_icon_English`](./LICENSE_icon_English) 与 [`LICENSE_icon_SC`](./LICENSE_icon_SC)。
+- 有动漫人物图片表情包的这些文件 `ic_launcher(?!.*alt.*).*` 图标以特别的形式授权，怡子曰曰绘制，版权明风OuO所有。矢量化图标由本项目提供。详见 [`LICENSE_icon_English`](/LICENSE_icon_English) 与 [`LICENSE_icon_SC`](/LICENSE_icon_SC)。
 - 除上述文件及目录的其他部分均为 [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html)。
 
 ## 赞助
