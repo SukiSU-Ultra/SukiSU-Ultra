@@ -275,9 +275,14 @@ private fun TopBar(
     backdrop: LayerBackdrop?,
     onOpenThemeStore: () -> Unit = {},
 ) {
+    val barColor = if (backdrop != null || LocalBackgroundImagePath.current.isNotEmpty()) {
+        Color.Transparent
+    } else {
+        colorScheme.surface
+    }
     BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
         TopAppBar(
-            color = Color.Transparent,
+            color = barColor,
             title = customText(CustomTextKey.HOME_TITLE),
             navigationIcon = {
                 IconButton(onClick = onOpenThemeStore) {

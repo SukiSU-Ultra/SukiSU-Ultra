@@ -269,14 +269,15 @@ fun ModulePagerMiuix(
 
     val backdrop = rememberBlurBackdrop(enableBlur)
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (backdrop != null || hasCustomBackground) Color.Transparent else colorScheme.surface
 
     AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
-                searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
+                searchStatus.TopAppBarAnim(backgroundColor = barColor) {
                     TopAppBar(
-                        color = Color.Transparent,
+                        color = barColor,
                         title = customText(CustomTextKey.PAGE_MODULES),
                         actions = {
                             Box {

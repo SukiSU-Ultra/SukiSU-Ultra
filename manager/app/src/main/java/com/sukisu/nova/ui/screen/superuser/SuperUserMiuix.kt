@@ -197,9 +197,9 @@ fun SuperUserPagerMiuix(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
-                searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
+                searchStatus.TopAppBarAnim(backgroundColor = barColor) {
                     TopAppBar(
-                        color = Color.Transparent,
+                        color = barColor,
                         title = customText(CustomTextKey.PAGE_SUPERUSER),
                         navigationIcon = {
                             IconButton(

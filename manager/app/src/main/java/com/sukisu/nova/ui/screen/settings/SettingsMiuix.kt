@@ -181,12 +181,16 @@ fun SettingPagerMiuix(
         )
     }
 
+    // Opaque while neither the bar blur nor a custom background is active: a transparent bar there
+    // lets the list scroll through the title. Matches the other Miuix pages.
+    val barColor = if (backdrop != null || hasCustomBackground) Color.Transparent else colorScheme.surface
+
     AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
                 TopAppBar(
-                    color = Color.Transparent,
+                    color = barColor,
                     title = customText(CustomTextKey.PAGE_SETTINGS),
                     scrollBehavior = scrollBehavior
                 )
