@@ -45,7 +45,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
@@ -53,8 +53,11 @@ jobs:
           # every job through the /ci volume. Re-downloading the whole history
           # per job made parallel jobs stall on the same fetch.
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -70,7 +73,7 @@ jobs:
 
       - name: Check toolchain
         run: |
-          set -eu
+          set -eux
           cargo --version
           cargo clippy --version
           rustup target list --installed
@@ -78,7 +81,7 @@ jobs:
 
       - name: Run clippy
         run: |
-          set -eu
+          set -eux
           # Same targets ksud is built for, except riscv64: that one needs
           # nightly with -Z build-std, which clippy does not support cleanly.
           for triple in aarch64-linux-android armv7-linux-androideabi x86_64-linux-android; do

@@ -28,13 +28,16 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -51,7 +54,7 @@ jobs:
       - name: Calculate version code
         id: version
         run: |
-          set -eu
+          set -eux
           COMMIT_COUNT=$(git rev-list --count refs/remotes/origin/main)
           VERSION_CODE=$((30000 + COMMIT_COUNT + 996))
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
@@ -102,20 +105,23 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           fi
           git clone -q --shared --no-checkout "$mirror" .
           git checkout -q "${GITHUB_SHA}"
 
       - name: Collect release files
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           mkdir -p artifacts
           for name in Manager \
@@ -254,7 +260,7 @@ jobs:
     steps:
       - name: Export the build to the out directory
         run: |
-          set -eu
+          set -eux
           # This job has no checkout: it only reads what the other jobs wrote.
           CI_ARTIFACT_ROOT="/ci/runs/${GITHUB_RUN_ID:-local}"
           if [ ! -d /out ]; then

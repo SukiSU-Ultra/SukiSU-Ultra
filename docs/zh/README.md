@@ -1,7 +1,7 @@
 # SukiSU Nova
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="SukiSU Nova logo">
 
-**简体中文** [English](./README.md) |
+**简体中文** [English](.././README.md) |
 
 一个 Android 上基于内核的 root 方案，由 [`tiann/KernelSU`](https://github.com/tiann/KernelSU) 进化而来，添加了一些有趣的变更。
 

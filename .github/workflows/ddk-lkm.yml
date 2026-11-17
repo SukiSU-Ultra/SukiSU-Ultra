@@ -61,7 +61,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
@@ -69,8 +69,11 @@ jobs:
           # every job through the /ci volume. Re-downloading the whole history
           # per job made parallel jobs stall on the same fetch.
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -86,7 +89,7 @@ jobs:
 
       - name: Pick make parallelism
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/parallel.sh
           jobs=$(ci_parallel_acquire 4 "${GITHUB_RUN_ID}-${KMI}")
           echo "MAKEFLAGS=-j$jobs" >> "$GITHUB_ENV"
@@ -94,7 +97,7 @@ jobs:
 
       - name: Build kernelsu.ko
         run: |
-          set -eu
+          set -eux
           cd kernel
 
           echo "=== Building kernelsu.ko for KMI: ${KMI} ==="
@@ -137,14 +140,14 @@ jobs:
 
       - name: Upload kernelsu.ko artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put "aarch64-${KMI}-lkm" \
             "${GITHUB_WORKSPACE}/out/aarch64/${KMI}_kernelsu.ko"
 
       - name: Build kernelsu.ko for x64
         run: |
-          set -eu
+          set -eux
           cd kernel
           make clean
 
@@ -223,7 +226,7 @@ jobs:
 
       - name: Upload x64 kernelsu.ko artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put "x86_64-${KMI}-lkm" \
             "${GITHUB_WORKSPACE}/out/x86_64/${KMI}_kernelsu.ko"
@@ -231,6 +234,6 @@ jobs:
       - name: Release the parallelism slot
         if: always()
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/parallel.sh
           ci_parallel_release "${GITHUB_RUN_ID}-${KMI}"

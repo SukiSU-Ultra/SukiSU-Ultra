@@ -71,7 +71,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
@@ -79,8 +79,11 @@ jobs:
           # every job through the /ci volume. Re-downloading the whole history
           # per job made parallel jobs stall on the same fetch.
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -144,7 +147,7 @@ jobs:
 
       - name: Check toolchain
         run: |
-          set -eu
+          set -eux
           java -version
           apksigner --version
           python3 --version
@@ -153,7 +156,7 @@ jobs:
         env:
           ARTIFACTS_RUN: ${{ inputs.artifacts_run }}
         run: |
-          set -eu
+          set -eux
           . "${GITHUB_WORKSPACE}/.github/scripts/ci/common.sh"
           # Rebuild-only runs take the native artifacts from an earlier run.
           if [ -n "$ARTIFACTS_RUN" ]; then
@@ -271,7 +274,7 @@ jobs:
           KPM_TOOLS_BASE_URL: https://git.zako.shirkneko.top:20004/shirkneko/SukiSU_KernelPatch_patch/releases/download/0.14.0
           PR_BUILD_FLAG: ${{ inputs.keystore != '' && '1' || '' }}
         run: |
-          set -eu
+          set -eux
           # Not ./gradlew: the wrapper downloads its distribution from
           # services.gradle.org, which redirects to github.com. The image ships
           # the same Gradle release at /opt/gradle.
@@ -296,7 +299,7 @@ jobs:
 
       - name: Upload Gradle APK
         run: |
-          set -eu
+          set -eux
           . "${GITHUB_WORKSPACE}/.github/scripts/ci/common.sh"
           ci_artifact_put "${{ steps.determine.outputs.title }}-gradle" \
             "${GITHUB_WORKSPACE}/manager/app/build/outputs/apk/release/"*.apk
@@ -307,7 +310,7 @@ jobs:
 
       - name: Upload mappings
         run: |
-          set -eu
+          set -eux
           . "${GITHUB_WORKSPACE}/.github/scripts/ci/common.sh"
           # A PR build does not always produce a mapping directory.
           if [ ! -d "${GITHUB_WORKSPACE}/manager/app/build/outputs/mapping/release" ]; then
@@ -332,7 +335,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
@@ -340,8 +343,11 @@ jobs:
           # every job through the /ci volume. Re-downloading the whole history
           # per job made parallel jobs stall on the same fetch.
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -361,7 +367,7 @@ jobs:
 
       - name: Check toolchain
         run: |
-          set -eu
+          set -eux
           java -version
           apksigner --version
           python3 --version
@@ -370,7 +376,7 @@ jobs:
         env:
           ARTIFACTS_RUN: ${{ inputs.artifacts_run }}
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           if [ -n "$ARTIFACTS_RUN" ] && [ ! -d "${CI_ARTIFACT_ROOT}/${{ steps.determine.outputs.title }}-gradle" ]; then
             cp -a "/ci/runs/${ARTIFACTS_RUN}"/* "${CI_ARTIFACT_ROOT}/"
@@ -502,7 +508,7 @@ jobs:
 
       - name: Upload build artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put "${{ steps.determine.outputs.title }}" \
             dist/*.apk

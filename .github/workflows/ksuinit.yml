@@ -23,7 +23,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
@@ -31,8 +31,11 @@ jobs:
           # every job through the /ci volume. Re-downloading the whole history
           # per job made parallel jobs stall on the same fetch.
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -48,14 +51,14 @@ jobs:
 
       - name: Check toolchain
         run: |
-          set -eu
+          set -eux
           rustup toolchain list
           rustup target list --installed
           test -x "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
 
       - name: Build ksuinit
         run: |
-          set -eu
+          set -eux
           source .github/scripts/setup-rust-build.sh aarch64-linux-android 26
           BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-aarch64-android.a"
           test -f "$BUILTINS"
@@ -64,14 +67,14 @@ jobs:
 
       - name: Upload ksuinit artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put ksuinit-aarch64 \
             target/aarch64-linux-android/release/ksuinit
 
       - name: Build ksuinit ARMv7
         run: |
-          set -eu
+          set -eux
           source .github/scripts/setup-rust-build.sh armv7-linux-androideabi 26
           BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-arm-android.a"
           test -f "$BUILTINS"
@@ -80,14 +83,14 @@ jobs:
 
       - name: Upload ARMv7 ksuinit artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put ksuinit-arm \
             target/armv7-linux-androideabi/release/ksuinit
 
       - name: Build ksuinit x64
         run: |
-          set -eu
+          set -eux
           source .github/scripts/setup-rust-build.sh x86_64-linux-android 26
           BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-x86_64-android.a"
           test -f "$BUILTINS"
@@ -96,7 +99,7 @@ jobs:
 
       - name: Upload x64 ksuinit artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put ksuinit-x86_64 \
             target/x86_64-linux-android/release/ksuinit
@@ -111,7 +114,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
@@ -119,8 +122,11 @@ jobs:
           # every job through the /ci volume. Re-downloading the whole history
           # per job made parallel jobs stall on the same fetch.
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -136,14 +142,14 @@ jobs:
 
       - name: Check toolchain
         run: |
-          set -eu
+          set -eux
           rustup toolchain list
           rustup target list --installed
           test -x "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
 
       - name: Build RISC-V ksuinit
         run: |
-          set -eu
+          set -eux
           source .github/scripts/setup-rust-build.sh riscv64-linux-android 35
           BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-riscv64-android.a"
           test -f "$BUILTINS"
@@ -154,7 +160,7 @@ jobs:
 
       - name: Upload RISC-V ksuinit artifact
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           ci_artifact_put ksuinit-riscv64 \
             target/riscv64-linux-android/release/ksuinit

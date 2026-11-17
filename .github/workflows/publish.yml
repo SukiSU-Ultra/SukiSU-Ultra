@@ -32,13 +32,16 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -eu
+          set -eux
           remote="https://git.zako.shirkneko.top:20004"
           mirror="/ci/repo-cache/${GITHUB_REPOSITORY}.git"
           mkdir -p "$(dirname "$mirror")"
           if [ ! -d "$mirror" ]; then
+            # The token must not appear in the trace of `set -x`.
+            set +x
             git -c "http.${remote}/.extraHeader=Authorization: token ${TOKEN}" \
               clone -q --mirror "${remote}/${GITHUB_REPOSITORY}.git" "$mirror"
+            set -x
           elif command -v flock >/dev/null 2>&1; then
             (
               flock 9
@@ -54,7 +57,7 @@ jobs:
 
       - name: Check toolchain
         run: |
-          set -eu
+          set -eux
           apksigner --version
           python3 --version
 
@@ -62,7 +65,7 @@ jobs:
         env:
           ARTIFACTS_RUN: ${{ inputs.artifacts_run }}
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           if [ -n "$ARTIFACTS_RUN" ] && [ ! -d "${CI_ARTIFACT_ROOT}/Manager" ]; then
             # This run has not written anything yet, so its root does not exist.
@@ -103,7 +106,7 @@ jobs:
       - name: Publish rolling CI build
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          set -eu
+          set -eux
           . .github/scripts/ci/common.sh
           test -n "$(find apks/split -type f -name '*.apk' -print -quit)"
           published="${CI_ARTIFACT_ROOT}/manager-ci/${GITHUB_SHA}"
