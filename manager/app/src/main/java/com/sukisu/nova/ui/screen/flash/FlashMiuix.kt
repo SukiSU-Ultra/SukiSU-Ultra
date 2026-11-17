@@ -47,6 +47,7 @@ import com.sukisu.nova.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -93,51 +94,35 @@ fun FlashScreenMiuix(
             )
         },
         floatingActionButton = {
-            when {
-                state.showRebootAction -> {
-                    val reboot = stringResource(id = state.rebootLabelRes)
-                    FloatingActionButton(
-                        modifier = Modifier
-                            .padding(
-                                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
-                                        WindowInsets.captionBar.asPaddingValues().calculateBottomPadding() + 20.dp,
-                                end = 20.dp
-                            )
-                            .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
-                        onClick = actions.onReboot,
-                        shadowElevation = 0.dp,
-                        content = {
+            if (state.flashingStatus == FlashingStatus.SUCCESS) {
+                val isRebootAction = state.showRebootAction
+                FloatingActionButton(
+                    modifier = Modifier
+                        .padding(
+                            bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                                    WindowInsets.captionBar.asPaddingValues().calculateBottomPadding() + 20.dp,
+                            end = 20.dp
+                        )
+                        .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
+                    onClick = {
+                        if (!state.actionInProgress) {
+                            if (isRebootAction) actions.onReboot() else actions.onClose()
+                        }
+                    },
+                    shadowElevation = 0.dp,
+                    content = {
+                        if (state.actionInProgress) {
+                            InfiniteProgressIndicator(color = colorScheme.onPrimary)
+                        } else {
                             Icon(
-                                Icons.Rounded.Refresh,
-                                reboot,
+                                if (isRebootAction) Icons.Rounded.Refresh else Icons.Rounded.Close,
+                                if (isRebootAction) stringResource(id = state.rebootLabelRes) else stringResource(id = R.string.close),
                                 Modifier.size(40.dp),
                                 tint = colorScheme.onPrimary
                             )
-                        },
-                    )
-                }
-                state.showCloseAction -> {
-                    val close = stringResource(id = R.string.close)
-                    FloatingActionButton(
-                        modifier = Modifier
-                            .padding(
-                                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
-                                        WindowInsets.captionBar.asPaddingValues().calculateBottomPadding() + 20.dp,
-                                end = 20.dp
-                            )
-                            .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
-                        onClick = actions.onBack,
-                        shadowElevation = 0.dp,
-                        content = {
-                            Icon(
-                                Icons.Rounded.Close,
-                                close,
-                                Modifier.size(40.dp),
-                                tint = colorScheme.onPrimary
-                            )
-                        },
-                    )
-                }
+                        }
+                    },
+                )
             }
         },
         popupHost = { },

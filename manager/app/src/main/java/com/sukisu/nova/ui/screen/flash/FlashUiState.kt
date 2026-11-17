@@ -10,16 +10,15 @@ data class FlashUiState(
     val flashingStatus: FlashingStatus,
     val showJailbreakWarning: Boolean,
     @param:StringRes val rebootLabelRes: Int,
-) {
-    val showCloseAction: Boolean
-        get() = flashingStatus == FlashingStatus.SUCCESS && !showRebootAction
-}
+    val actionInProgress: Boolean = false,
+)
 
 @Immutable
 data class FlashScreenActions(
     val onBack: () -> Unit,
     val onSaveLog: () -> Unit,
     val onReboot: () -> Unit,
+    val onClose: () -> Unit = {},
     val onConfirmJailbreakWarning: () -> Unit,
     val onDismissJailbreakWarning: () -> Unit,
 )
