@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_show_home_card">Mostrar o assistente de IA no início</string>
+    <string name="ai_show_home_card_summary">Exibe o cartão do início e inicializa o assistente ali. Desativado, desconecta completamente a entrada do início.</string>
+</resources>
